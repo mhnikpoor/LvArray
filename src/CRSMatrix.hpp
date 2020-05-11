@@ -161,8 +161,6 @@ public:
         new ( rowEntries + i ) T();
       }
     }
-
-    setName( "" );
   }
 
   /**
