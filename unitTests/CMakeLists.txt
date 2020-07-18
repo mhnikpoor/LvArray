@@ -129,3 +129,7 @@ blt_add_test( NAME testTensorOps
 
 install(TARGETS testTensorOps
         DESTINATION bin)
+
+if( ENABLE_PYTHON )
+    add_subdirectory( python )
+endif()

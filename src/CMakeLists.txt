@@ -38,6 +38,14 @@ set( lvarray_sources
      system.cpp
      totalview/tv_data_display.c )
 
+if(ENABLE_PYTHON)
+    set(lvarray_headers
+        python/numpyConversion.hpp
+        python/numpyArrayView.hpp
+        python/numpySortedArrayView.hpp
+        )
+endif()
+
 blt_add_library( NAME             lvarray
                  SOURCES          ${lvarray_sources}
                  HEADERS          ${lvarray_headers}
