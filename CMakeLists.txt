@@ -51,7 +51,6 @@ if( ENABLE_CALIPER )
     set( lvarray_dependencies ${lvarray_dependencies} caliper )
 endif()
 
+add_subdirectory(src)
 add_subdirectory(unitTests)
 add_subdirectory(benchmarks)
-add_subdirectory(src)
-
