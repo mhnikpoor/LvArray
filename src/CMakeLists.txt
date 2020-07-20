@@ -58,3 +58,5 @@ target_include_directories( lvarray PUBLIC ${CMAKE_BINARY_DIR}/include )
 lvarray_add_code_checks( PREFIX lvarray
                          EXCLUDES "blt/*" )
 
+
+add_subdirectory( jitti )

@@ -36,6 +36,4 @@
 /* #undef USE_CALIPER */
 #endif
 
-
-
 #endif  /* LVARRAYCONFIG_HPP */
