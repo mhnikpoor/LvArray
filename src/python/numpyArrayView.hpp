@@ -48,10 +48,10 @@ namespace python
  */
 template< typename T, int NDIM, int USD, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
 std::enable_if_t< std::is_arithmetic< T >::value, PyObject * >
-create( ArrayView<T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & arr )
+create( ArrayView<T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & arr, bool const modify )
 {
-    arr.move( MemorySpace::CPU );
-    return createNumPyArray( arr.data(), NDIM, arr.dims(), arr.strides() );
+    arr.move( MemorySpace::CPU, modify );
+    return createNumPyArray( arr.data(), modify, NDIM, arr.dims(), arr.strides() );
 }
 
 } // namespace python

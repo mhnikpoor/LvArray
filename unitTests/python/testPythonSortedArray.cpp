@@ -27,7 +27,7 @@ PyObject * initSortedArrayInt( int start, int stop ){
  * Note this view may be invalidated by subsequent calls to `initSortedArrayInt`
  */
 PyObject * getSortedArrayInt( void ){
-    return LvArray::python::create( sortedArrayInt.toView() );
+    return LvArray::python::create( sortedArrayInt.toView(), true );
 }
 
 /**

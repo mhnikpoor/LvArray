@@ -33,7 +33,7 @@ namespace LvArray
 namespace python
 {
 
-IS_VALID_EXPRESSION( CanCreate, T, create( std::declval< T & >() ) );
+IS_VALID_EXPRESSION( CanCreate, T, create( std::declval< T & >(), true ) );
 
 } // namespace python
 } // namespace LvArray

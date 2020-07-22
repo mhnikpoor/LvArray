@@ -31,7 +31,7 @@ PyObject * initArray1dInt( int offset){
  * Note this view may be invalidated by subsequent calls to `initArray1dInt`
  */
 PyObject * getArray1dInt( void ){
-    return LvArray::python::create( array1dInt.toView() );
+    return LvArray::python::create( array1dInt.toView(), true );
 }
 
 /**
@@ -61,7 +61,7 @@ PyObject * initArray4dDouble( int offset ){
  * Note this view may be invalidated by subsequent calls to `initArray4dLongLong`
  */
 PyObject * getArray4dDouble( void ){
-    return LvArray::python::create( array4dDouble.toView() );
+    return LvArray::python::create( array4dDouble.toView(), true );
 }
 
 /**
@@ -91,7 +91,7 @@ PyObject * initArray2dChar( int offset ){
  * Note this view may be invalidated by subsequent calls to `initArray4dLongLong`
  */
 PyObject * getArray2dChar( void ){
-    return LvArray::python::create( array2dChar.toView() );
+    return LvArray::python::create( array2dChar.toView(), true );
 }
 
 /**

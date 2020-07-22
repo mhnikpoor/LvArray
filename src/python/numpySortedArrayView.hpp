@@ -43,12 +43,14 @@ namespace python
  */
 template< typename T, typename INDEX_TYPE, template<typename> class BUFFER_TYPE >
 std::enable_if_t< std::is_arithmetic< T >::value, PyObject * >
-create( SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & arr )
+create( SortedArrayView< T const, INDEX_TYPE, BUFFER_TYPE > const & arr, bool const modify )
 {
+  LVARRAY_UNUSED_VARIABLE( modify );
+
   arr.move( MemorySpace::CPU );
   INDEX_TYPE const dims = arr.size();
   INDEX_TYPE const strides = 1;
-  return createNumPyArray( arr.data(), 1, &dims, &strides );
+  return createNumPyArray( arr.data(), false, 1, &dims, &strides );
 }
 
 } // namespace python

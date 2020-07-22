@@ -57,6 +57,7 @@ PyObject * createNumpyArrayImpl( void * const data,
 template< typename T, typename INDEX_TYPE >
 std::enable_if_t< std::is_arithmetic< T >::value, PyObject * >
 createNumPyArray( T * const data,
+                  bool const modify,
                   int const ndim,
                   INDEX_TYPE const * const dimsPtr,
                   INDEX_TYPE const * const stridesPtr )
@@ -72,7 +73,7 @@ createNumPyArray( T * const data,
 
   return internal::createNumpyArrayImpl( const_cast< void * >( static_cast< void const * >( data ) ),
                                          std::type_index( typeid( T ) ),
-                                         std::is_const< T >::value,
+                                         std::is_const< T >::value || !modify,
                                          ndim,
                                          dims.data(),
                                          strides.data() );
