@@ -93,9 +93,11 @@ endif()
 ################################
 # Python
 ################################
-if(ENABLE_PYTHON)
-    include(cmake/FindPython.cmake)
-    message(STATUS "Using Python Include: ${PYTHON_INCLUDE_DIRS}")
+if( ENABLE_PYTHON )
+    include( cmake/FindPython.cmake )
+    message( STATUS "Python3_INCLUDE_DIRS = ${Python3_INCLUDE_DIRS}" )
+    message( STATUS "Python3_LIBRARY_DIRS = ${Python3_LIBRARY_DIRS}" )
+    message( STATUS "Python3_NumPy_INCLUDE_DIRS = ${Python3_NumPy_INCLUDE_DIRS}" )
 endif()
 
 set(thirdPartyLibs ${thirdPartyLibs} CACHE STRING "")

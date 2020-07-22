@@ -9,7 +9,7 @@ foreach(test ${pythonTests})
     blt_add_library( NAME ${test_name}
                      SOURCES ${test} ${test_name}.c
                      HEADERS ${test_name}.h
-                     DEPENDS_ON lvarray Python3::Python Python3::NumPy
+                     DEPENDS_ON pylvarray
                      SHARED TRUE
                      CLEAR_PREFIX TRUE
                     )
