@@ -66,6 +66,20 @@ class ArrayTests(unittest.TestCase):
                     testing.assert_array_equal(arr, unmodified_copy * factor)
                     testing.assert_array_equal(getter(), arr)
 
+    def test_modification_read_only(self):
+        for getter, _, _, _ in self.ARRAY_GET_SET_MULT_DIM:
+            arr = getter(write=False)
+            with self.assertRaisesRegex(ValueError, "read-only"):
+                arr *= 2
+            with self.assertRaisesRegex(ValueError, "read-only"):
+                arr -= 1
+
+    def test_array1d_const_float(self):
+        arr = lvarray.get_array1d_const_float()
+        with self.assertRaisesRegex(ValueError, "read-only"):
+            arr *= 2
+        with self.assertRaisesRegex(ValueError, "read-only"):
+            arr -= 1
 
 if __name__ == "__main__":
     unittest.main()

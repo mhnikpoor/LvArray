@@ -11,20 +11,42 @@
 
 // global Array of ints
 static LvArray::Array< long long, 1, RAJA::PERM_I, std::ptrdiff_t, LvArray::MallocBuffer > array1d_int( 30 );
+// global Array of const floats
+static LvArray::Array< float, 1, RAJA::PERM_I, std::ptrdiff_t, LvArray::MallocBuffer > array1d_const_float;
 // global 4D Array of doubles
 static LvArray::Array< double, 4, RAJA::PERM_LKIJ, std::ptrdiff_t, LvArray::MallocBuffer > array4d_double( 5, 6, 7, 8 );
 // global 2D Array of chars
 static LvArray::Array< char, 2, RAJA::PERM_JI, std::ptrdiff_t, LvArray::MallocBuffer > array2d_char( 3, 4 );
 
 /**
- * Fetch the global 1D array and return a numpy view of it.
+ * Fetch the global 1D array of const floats and return a numpy view of it.
  */
 static PyObject *
-get_array1d( PyObject *self, PyObject *args )
+get_array1d_const_float( PyObject *self, PyObject *args )
 {
     LVARRAY_UNUSED_VARIABLE( self );
     LVARRAY_UNUSED_VARIABLE( args );
-    return LvArray::python::create( array1d_int.toView(), true );
+    array1d_const_float.clear();
+    for (int i = 0; i < 20; ++i)
+    {
+        array1d_const_float.emplace_back( i );
+    }
+    return LvArray::python::create( array1d_const_float.toViewConst(), true );
+}
+
+/**
+ * Fetch the global 1D array of ints and return a numpy view of it.
+ */
+static PyObject *
+get_array1d( PyObject *self, PyObject *args, PyObject *kwargs )
+{
+    LVARRAY_UNUSED_VARIABLE( self );
+    int write = true;
+    char const * kwlist[] = {"write", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|p", const_cast< char** >( kwlist ),
+                                     &write))
+        return NULL;
+    return LvArray::python::create( array1d_int.toView(), write );
 }
 
 /**
@@ -43,7 +65,7 @@ set_array1d( PyObject *self, PyObject *args )
     {
         value = offset++;
     } );
-    return get_array1d( nullptr, nullptr );
+    return LvArray::python::create( array1d_int.toView(), true );
 }
 
 /**
@@ -67,11 +89,15 @@ multiply_array1d( PyObject *self, PyObject *args )
  * Fetch the global SortedArray of floats and return a numpy view of it.
  */
 static PyObject *
-get_array4d( PyObject *self, PyObject *args )
+get_array4d( PyObject *self, PyObject *args, PyObject *kwargs )
 {
     LVARRAY_UNUSED_VARIABLE( self );
-    LVARRAY_UNUSED_VARIABLE( args );
-    return LvArray::python::create( array4d_double.toView(), true );
+    int write = true;
+    char const * kwlist[] = {"write", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|p", const_cast< char** >( kwlist ),
+                                     &write))
+        return NULL;
+    return LvArray::python::create( array4d_double.toView(), write );
 }
 
 /**
@@ -89,7 +115,7 @@ set_array4d( PyObject *self, PyObject *args )
     {
         value = offset++;
     } );
-    return get_array4d( nullptr, nullptr );
+    return LvArray::python::create( array4d_double.toView(), true );
 }
 
 /**
@@ -113,11 +139,15 @@ multiply_array4d( PyObject *self, PyObject *args )
  * Fetch the global SortedArray of floats and return a numpy view of it.
  */
 static PyObject *
-get_array2d( PyObject *self, PyObject *args )
+get_array2d( PyObject *self, PyObject *args, PyObject *kwargs )
 {
     LVARRAY_UNUSED_VARIABLE( self );
-    LVARRAY_UNUSED_VARIABLE( args );
-    return LvArray::python::create( array2d_char.toView(), true );
+    int write = true;
+    char const * kwlist[] = {"write", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|p", const_cast< char** >( kwlist ),
+                                     &write))
+        return NULL;
+    return LvArray::python::create( array2d_char.toView(), write );
 }
 
 /**
@@ -135,7 +165,7 @@ set_array2d( PyObject *self, PyObject *args )
     {
         value = offset++;
     } );
-    return get_array2d( nullptr, nullptr );
+    return LvArray::python::create( array2d_char.toView(), true );
 }
 
 /**
@@ -159,21 +189,23 @@ multiply_array2d( PyObject *self, PyObject *args )
  * Array of functions and docstrings to export to Python
  */
 static PyMethodDef LvArrayFuncs[] = {
+    {"get_array1d_const_float", get_array1d_const_float, METH_NOARGS,
+     "Get the numpy representation of the global 1D Array of const floats."},
     {"set_array1d",  set_array1d, METH_VARARGS,
      "Return the numpy representation of a the global 1D Array after initializing it `range(start, stop)`."},
-    {"get_array1d",  get_array1d, METH_NOARGS,
+    {"get_array1d",  (PyCFunction)(void(*)(void)) get_array1d, METH_VARARGS | METH_KEYWORDS,
      "Get the numpy representation of the global 1D Array."},
     {"multiply_array1d",  multiply_array1d, METH_VARARGS,
      "Multiply the contents of the global 1D Array."},
     {"set_array4d",  set_array4d, METH_VARARGS,
      "Return the numpy representation of a the global 4D Array after initializing it `range(start, stop)`."},
-    {"get_array4d",  get_array4d, METH_NOARGS,
+    {"get_array4d",  (PyCFunction)(void(*)(void)) get_array4d, METH_VARARGS | METH_KEYWORDS,
      "Get the numpy representation of the global 4D Array."},
     {"multiply_array4d",  multiply_array4d, METH_VARARGS,
      "Multiply the contents of the global 4D Array."},
     {"set_array2d",  set_array2d, METH_VARARGS,
      "Return the numpy representation of a the global 2D Array after initializing it `range(start, stop)`."},
-    {"get_array2d",  get_array2d, METH_NOARGS,
+    {"get_array2d",  (PyCFunction)(void(*)(void)) get_array2d, METH_VARARGS | METH_KEYWORDS,
      "Get the numpy representation of the global 2D Array."},
     {"multiply_array2d",  multiply_array2d, METH_VARARGS,
      "Multiply the contents of the global 2D Array."},
