@@ -1,6 +1,7 @@
 set( pythonTests
      testPythonArray.cpp
      testPythonSortedArray.cpp
+     testPythonScalars.cpp
     )
 
 foreach(test ${pythonTests})
