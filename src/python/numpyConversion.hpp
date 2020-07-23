@@ -79,5 +79,20 @@ createNumPyArray( T * const data,
                                          strides.data() );
 }
 
+template< typename T >
+std::enable_if_t< std::is_arithmetic< T >::value, PyObject * >
+create( T & value, bool const modify )
+{
+  std::ptrdiff_t dims = 1;
+  std::ptrdiff_t strides = 1;
+
+  return internal::createNumpyArrayImpl( const_cast< void * >( static_cast< void const * >( &value ) ),
+                                         std::type_index( typeid( T ) ),
+                                         std::is_const< T >::value || !modify,
+                                         1,
+                                         &dims,
+                                         &strides );
+}
+
 } // namespace python
 } // namespace LvArray
