@@ -7,8 +7,7 @@ foreach(test ${pythonTests})
     get_filename_component( test_name ${test} NAME_WE )
 
     blt_add_library( NAME ${test_name}
-                     SOURCES ${test} ${test_name}.c
-                     HEADERS ${test_name}.h
+                     SOURCES ${test}
                      DEPENDS_ON pylvarray
                      SHARED TRUE
                      CLEAR_PREFIX TRUE
