@@ -2,6 +2,7 @@ set( pythonTests
      testPythonArray.cpp
      testPythonSortedArray.cpp
      testPythonScalars.cpp
+     testPythonCRSMatrix.cpp
     )
 
 foreach(test ${pythonTests})

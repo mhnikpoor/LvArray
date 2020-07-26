@@ -1,7 +1,6 @@
 """Tests for numpy views of LvArray::Array objects"""
 
 import unittest
-import itertools
 
 import numpy as np
 from numpy import testing

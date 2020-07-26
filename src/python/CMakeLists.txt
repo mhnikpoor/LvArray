@@ -3,10 +3,12 @@ set( pylvarray_headers
      numpyConversion.hpp
      numpyArrayView.hpp
      numpySortedArrayView.hpp
+     numpyCRSMatrixView.hpp
     )
 
 set( pylvarray_sources
      numpyConversion.cpp
+     numpyCRSMatrixView.cpp
     )
 
 message("adding pylvarray library")
