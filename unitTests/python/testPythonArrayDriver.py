@@ -80,5 +80,6 @@ class ArrayTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "read-only"):
             arr -= 1
 
+
 if __name__ == "__main__":
     unittest.main()

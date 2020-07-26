@@ -12,7 +12,12 @@ import testPythonScalars as lvarray
 class ScalarTests(unittest.TestCase):
     """Tests for the `lvarray` extension module"""
 
-    GETTERS = (lvarray.get_schar, lvarray.get_ulong, lvarray.get_longdouble, lvarray.get_ushort)
+    GETTERS = (
+        lvarray.get_schar,
+        lvarray.get_ulong,
+        lvarray.get_longdouble,
+        lvarray.get_ushort,
+    )
 
     def test_size(self):
         for getter in list(self.GETTERS) + [lvarray.get_short_const]:

@@ -34,6 +34,16 @@ namespace python
 namespace internal
 {
 
+
+PyObject * crsMatrixError( const char * errstr ){
+    PyErr_SetString( PyExc_RuntimeError, errstr );
+    return NULL;
+}
+
+/**
+ * @brief create a 3-tuple from three NumPy arrays. Checks for NULL arguments for easier
+ *        usage.
+ */
 PyObject * createCRSMatrix( PyObject * entries, PyObject * columns, PyObject * offsets ){
     if ( entries == NULL || columns == NULL || offsets == NULL ){
         return NULL;

@@ -33,13 +33,16 @@
 // global SortedArray of ints
 static LvArray::CRSMatrix< double, int, std::ptrdiff_t, LvArray::MallocBuffer > crsMat(NUMROWS, NUMCOLS, 10);
 
+static LvArray::CRSMatrix< double, int, std::ptrdiff_t, LvArray::MallocBuffer > uncompressedMat(NUMROWS, NUMCOLS, 10);
+
+static LvArray::CRSMatrix< double, int, std::ptrdiff_t, LvArray::MallocBuffer > dim0Mat(0, 0, 10);
+
 /**
  * Return a 3-tuple of numpy arrays representing the CRSMatrix.
  */
 static PyObject * getMatrix( PyObject * self, PyObject * args ){
     LVARRAY_UNUSED_VARIABLE( self );
     LVARRAY_UNUSED_VARIABLE( args );
-    crsMat.compress();
     return LvArray::python::create( crsMat.toViewConstSizes(), true );
 }
 
@@ -56,7 +59,33 @@ static PyObject * initMatrix( PyObject * self, PyObject * args ){
         crsMat.removeNonZero( row, row );
         crsMat.insertNonZero( row, row, initializer );
     }
+    crsMat.compress();
     return getMatrix( nullptr, nullptr );
+}
+
+/**
+ * Initialize the global uncompressed CRSMatrix along the diagonal
+ */
+static PyObject * initUncompressedMatrix( PyObject * self, PyObject * args ){
+    LVARRAY_UNUSED_VARIABLE( self );
+    double initializer;
+    if ( !PyArg_ParseTuple( args, "d", &initializer ) )
+        return NULL;
+    for ( std::ptrdiff_t row = 0; row < uncompressedMat.numRows(); ++row )
+    {
+        uncompressedMat.removeNonZero( row, row );
+        uncompressedMat.insertNonZero( row, row, initializer );
+    }
+    return LvArray::python::create( uncompressedMat.toViewConstSizes(), true );
+}
+
+/**
+ * Return a 3-tuple of numpy arrays representing the CRSMatrix.
+ */
+static PyObject * get0DimMatrix( PyObject * self, PyObject * args ){
+    LVARRAY_UNUSED_VARIABLE( self );
+    LVARRAY_UNUSED_VARIABLE( args );
+    return LvArray::python::create( dim0Mat.toViewConstSizes(), true );
 }
 
 /**
@@ -66,6 +95,10 @@ static PyMethodDef CRSMatrixFuncs[] = {
     {"get_matrix",  getMatrix, METH_NOARGS,
      "Return the numpy representation of a global CRSMatrix."},
     {"init_matrix",  initMatrix, METH_VARARGS,
+     "Initialize a global CRSMatrix along the diagonal with the given float."},
+    {"init_uncompressed",  initUncompressedMatrix, METH_VARARGS,
+     "Initialize a global CRSMatrix along the diagonal with the given float."},
+    {"get_dim0",  get0DimMatrix, METH_VARARGS,
      "Initialize a global CRSMatrix along the diagonal with the given float."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
