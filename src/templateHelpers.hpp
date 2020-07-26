@@ -19,6 +19,9 @@
 #pragma once
 
 // Source includes
+#include "Macros.hpp"
+
+// TPL includes
 #include <camp/camp.hpp>
 
 // System includes
