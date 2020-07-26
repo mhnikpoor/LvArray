@@ -37,6 +37,11 @@ class ScalarTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "read-only"):
             arr[0] = 14
 
+    def test_unconvertible_types(self):
+        for getter in (lvarray.get_bool, lvarray.get_char16):
+            with self.assertRaisesRegex(TypeError, "No NumPy type for"):
+                getter()
+
 
 if __name__ == "__main__":
     unittest.main()

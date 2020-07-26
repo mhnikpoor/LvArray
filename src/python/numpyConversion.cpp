@@ -68,8 +68,6 @@ std::pair< int, std::size_t > getNumPyType( std::type_index const typeIndex )
   { return { NPY_DOUBLE, sizeof( double ) }; }
   if( typeIndex == std::type_index( typeid( long double ) ) )
   { return { NPY_LONGDOUBLE, sizeof( long double ) }; }
-
-  LVARRAY_ERROR( "No NumpyType for " << demangle( typeIndex.name() ) );
   return { NPY_NOTYPE, std::numeric_limits< std::size_t >::max() };
 }
 
@@ -84,7 +82,10 @@ PyObject * createNumpyArrayImpl( void * const data,
   { import_array(); }
 
   std::pair< int, std::size_t > const typeInfo = getNumPyType( type );
-
+  if ( typeInfo.first == NPY_NOTYPE ){
+    PyErr_SetString(PyExc_TypeError, ( "No NumPy type for " + demangle( type.name() ) ).c_str() );
+    return NULL;
+  }
   std::vector< npy_intp > byteStrides( ndim );
   std::vector< npy_intp > npyDims( ndim );
 

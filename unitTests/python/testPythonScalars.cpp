@@ -31,6 +31,8 @@ static unsigned long numpy_ulong = 3;
 static long double numpy_longdouble = 678;
 static unsigned short numpy_ushort = 13;
 static const short numpy_short_const = 17;
+static bool numpy_bool = true; // should raise TypeError when converting
+static char16_t numpy_char16 = 275; // should raise TypeError when converting
 
 /**
  * Fetch the global Scalar and return a numpy view of it.
@@ -88,6 +90,28 @@ get_short_const( PyObject *self, PyObject *args )
 }
 
 /**
+ * Fetch the global Scalar and return a numpy view of it.
+ */
+static PyObject *
+get_bool( PyObject *self, PyObject *args )
+{
+    LVARRAY_UNUSED_VARIABLE( self );
+    LVARRAY_UNUSED_VARIABLE( args );
+    return LvArray::python::create( numpy_bool, true );
+}
+
+/**
+ * Fetch the global Scalar and return a numpy view of it.
+ */
+static PyObject *
+get_char16( PyObject *self, PyObject *args )
+{
+    LVARRAY_UNUSED_VARIABLE( self );
+    LVARRAY_UNUSED_VARIABLE( args );
+    return LvArray::python::create( numpy_char16, true );
+}
+
+/**
  * Array of functions and docstrings to export to Python
  */
 static PyMethodDef ScalarFuncs[] = {
@@ -100,6 +124,10 @@ static PyMethodDef ScalarFuncs[] = {
     {"get_ushort",  get_ushort, METH_NOARGS,
      "Return the numpy representation of a global primitive."},
     {"get_short_const",  get_short_const, METH_NOARGS,
+     "Return the numpy representation of a global primitive."},
+    {"get_bool",  get_bool, METH_NOARGS,
+     "Return the numpy representation of a global primitive."},
+    {"get_char16",  get_char16, METH_NOARGS,
      "Return the numpy representation of a global primitive."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
