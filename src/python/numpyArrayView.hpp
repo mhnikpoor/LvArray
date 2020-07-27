@@ -84,7 +84,7 @@ template< template< typename > class BUFFER_TYPE >
 PyObject * create( ArrayView< std::string, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const & arr, bool const modify )
 {
     LVARRAY_UNUSED_VARIABLE( modify );
-    arr.move( MemorySpace::CPU, modify );
+    arr.move( MemorySpace::CPU, false );
     return internal::createPyListOfStrings( arr.data(), integerConversion< std::ptrdiff_t >( arr.size() ) );
 }
 
