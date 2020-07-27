@@ -38,6 +38,11 @@ if(ENABLE_UMPIRE)
     find_package(umpire REQUIRED
                  PATHS ${UMPIRE_DIR}/share/umpire/cmake/)
     
+    blt_register_library(NAME umpire
+                         INCLUDES ${UMPIRE_INCLUDE_DIRS}
+                         LIBRARIES umpire
+                         TREAT_INCLUDES_AS_SYSTEM ON)
+
     set(thirdPartyLibs ${thirdPartyLibs} umpire)
 else()
     message(STATUS "Not using umpire.")
@@ -69,7 +74,12 @@ if(ENABLE_CHAI)
     get_target_property(CHAI_LINK_LIBRARIES chai INTERFACE_LINK_LIBRARIES)
     list(REMOVE_ITEM CHAI_LINK_LIBRARIES RAJA)
     set_target_properties(chai
-                        PROPERTIES INTERFACE_LINK_LIBRARIES ${CHAI_LINK_LIBRARIES})
+                          PROPERTIES INTERFACE_LINK_LIBRARIES ${CHAI_LINK_LIBRARIES})
+
+    blt_register_library(NAME chai
+                         INCLUDES ${CHAI_INCLUDE_DIRS}
+                         LIBRARIES chai
+                         TREAT_INCLUDES_AS_SYSTEM ON)
 
     set(thirdPartyLibs ${thirdPartyLibs} chai)
 else()
