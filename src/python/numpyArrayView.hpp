@@ -26,6 +26,7 @@
 // source includes
 #include "numpyConversion.hpp"
 #include "../ArrayView.hpp"
+#include "../IntegerConversion.hpp"
 
 namespace LvArray
 {
@@ -33,14 +34,33 @@ namespace LvArray
 namespace python
 {
 
+namespace internal
+{
+
+/**
+ * @brief create and return a Python list of strings from an array of std::strings.
+ *        the Python strings will be copies.
+ * @param strptr a pointer to the strings to convert
+ * @param size the number of strings in the array
+ */
+PyObject * createPyListOfStrings( std::string * strptr, std::ptrdiff_t size );
+
+} // namespace internal
+
+/**
+ * @brief create and return a Python list of strings from a std::vector of std::strings.
+ *        the Python strings will be copies.
+ * @param vec the vector to convert.
+ * @param modify has no effect
+ */
+PyObject * create( std::vector< std::string > arr, bool const modify );
+
 /**
  * @brief Return a NumPy view of an ArrayView. This NumPy view may not be resized. If T is const,
  *   the contents may not be modified. The NumPy view will be invalidated if the array is
  *   reallocated.
  * @tparam T type of data that is contained by the array.
  * @tparam NDIM number of dimensions in array
- * @tparam PERMUTATION a camp::idx_seq containing the values in [0, NDIM) which describes how the
- *   data is to be laid out in memory.
  * @tparam INDEX_TYPE the integer to use for indexing.
  * @tparam BUFFER_TYPE A class that defines how to actually allocate memory for the Array. Must take
  *   one template argument that describes the type of the data being stored (T).
@@ -52,6 +72,20 @@ create( ArrayView<T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & arr, bool cons
 {
     arr.move( MemorySpace::CPU, modify );
     return createNumPyArray( arr.data(), modify, NDIM, arr.dims(), arr.strides() );
+}
+
+/**
+ * @brief create and return a Python list of strings from an ArrayView of std::strings.
+ *        the Python strings will be copies.
+ * @param arr the ArrayView to convert.
+ * @param modify has no effect
+ */
+template< template< typename > class BUFFER_TYPE >
+PyObject * create( ArrayView< std::string, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const & arr, bool const modify )
+{
+    LVARRAY_UNUSED_VARIABLE( modify );
+    arr.move( MemorySpace::CPU, modify );
+    return internal::createPyListOfStrings( arr.data(), integerConversion< std::ptrdiff_t >( arr.size() ) );
 }
 
 } // namespace python

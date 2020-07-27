@@ -1,7 +1,6 @@
 """Tests for the `lvarray` extension module"""
 
 import unittest
-import itertools
 
 import numpy as np
 from numpy import testing

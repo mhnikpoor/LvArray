@@ -3,6 +3,7 @@ set( pythonTests
      testPythonSortedArray.cpp
      testPythonScalars.cpp
      testPythonCRSMatrix.cpp
+     testPythonListOfStrings.cpp
     )
 
 foreach(test ${pythonTests})

@@ -9,6 +9,7 @@ set( pylvarray_headers
 set( pylvarray_sources
      numpyConversion.cpp
      numpyCRSMatrixView.cpp
+     numpyArrayView.cpp
     )
 
 message("adding pylvarray library")
