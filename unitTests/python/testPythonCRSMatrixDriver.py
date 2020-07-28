@@ -11,24 +11,21 @@ import testPythonCRSMatrix as lvarray
 
 
 class LvArrayCRSMatrix(csr.csr_matrix):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__valid_indices = set()
-        for row_index in range(self.shape[0]):
-            col_indices = self.indices[
-                self.indptr[row_index] : self.indptr[row_index + 1]
-            ]
-            for col_index in col_indices:
-                self.__valid_indices.add((row_index, col_index))
 
     def __setitem__(self, key, value):
-        super().__getitem__(key)  # check for IndexError
-        if key not in self.__valid_indices:
-            raise IndexError(
-                f"Entry {key} is not represented in this {type(self).__name__} "
-                "and adding new values is not supported"
-            )
-        return super().__setitem__(key, value)
+        try:
+            row, col = key
+        except (TypeError, ValueError):
+            self.data[self.indptr[key] : self.indptr[key + 1]] = value
+        else:
+            cols_in_row = self.indices[self.indptr[row] : self.indptr[row + 1]]
+            candidate_index = np.searchsorted(cols_in_row, col)
+            if candidate_index == len(cols_in_row) or cols_in_row[candidate_index] != col:
+                raise IndexError(
+                    f"Entry {key} is not represented in this {type(self).__name__} "
+                    "and adding new values is not supported"
+                )
+            self.data[self.indptr[row] + candidate_index] = value
 
 
 class ArrayTests(unittest.TestCase):
