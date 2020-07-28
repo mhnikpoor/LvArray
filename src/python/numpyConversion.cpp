@@ -38,6 +38,9 @@ namespace python
 namespace internal
 {
 
+/**
+ *
+ */
 std::pair< int, std::size_t > getNumPyType( std::type_index const typeIndex )
 {
   if( typeIndex == std::type_index( typeid( char ) ) )
@@ -71,6 +74,7 @@ std::pair< int, std::size_t > getNumPyType( std::type_index const typeIndex )
   return { NPY_NOTYPE, std::numeric_limits< std::size_t >::max() };
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 PyObject * createNumpyArrayImpl( void * const data,
                                  std::type_index const type,
                                  bool const dataIsConst,
@@ -107,5 +111,13 @@ PyObject * createNumpyArrayImpl( void * const data,
 }
 
 } // namespace internal
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+PyObject * create( std::string const & value, bool const modify )
+{
+  LVARRAY_UNUSED_VARIABLE( modify );
+  return PyUnicode_FromString( value.c_str() );
+}
+
 } // namespace python
 } // namespace LvArray

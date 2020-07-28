@@ -23,10 +23,13 @@
 
 #pragma once
 
-// source includes
+// Source includes
 #include "numpyConversion.hpp"
 #include "../ArrayView.hpp"
 #include "../IntegerConversion.hpp"
+
+// System includes
+#include <vector>
 
 namespace LvArray
 {
@@ -39,21 +42,25 @@ namespace internal
 
 /**
  * @brief create and return a Python list of strings from an array of std::strings.
- *        the Python strings will be copies.
+ *   the Python strings will be copies.
  * @param strptr a pointer to the strings to convert
  * @param size the number of strings in the array
  */
-PyObject * createPyListOfStrings( std::string * strptr, std::ptrdiff_t size );
+PyObject * createPyListOfStrings( std::string const * const strptr, std::ptrdiff_t const size );
 
 } // namespace internal
 
 /**
  * @brief create and return a Python list of strings from a std::vector of std::strings.
- *        the Python strings will be copies.
+ *   the Python strings will be copies.
  * @param vec the vector to convert.
  * @param modify has no effect
  */
-PyObject * create( std::vector< std::string > arr, bool const modify );
+inline PyObject * create( std::vector< std::string > const & vec, bool const modify )
+{
+  LVARRAY_UNUSED_VARIABLE( modify );
+  return internal::createPyListOfStrings( vec.data(), integerConversion< std::ptrdiff_t >( vec.size() ) );
+}
 
 /**
  * @brief Return a NumPy view of an ArrayView. This NumPy view may not be resized. If T is const,
@@ -76,7 +83,7 @@ create( ArrayView<T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & arr, bool cons
 
 /**
  * @brief create and return a Python list of strings from an ArrayView of std::strings.
- *        the Python strings will be copies.
+ *   the Python strings will be copies.
  * @param arr the ArrayView to convert.
  * @param modify has no effect
  */

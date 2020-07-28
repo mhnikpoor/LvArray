@@ -1,5 +1,6 @@
 set( pylvarray_headers
      python.hpp
+     pythonForwardDeclarations.hpp
      numpyConversion.hpp
      numpyArrayView.hpp
      numpySortedArrayView.hpp

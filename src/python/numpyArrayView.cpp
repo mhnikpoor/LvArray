@@ -29,39 +29,21 @@
 
 namespace LvArray
 {
-
 namespace python
 {
-
-/**
- * @brief create and return a Python list of strings from a std::vector of std::strings.
- *        the Python strings will be copies.
- * @param vec the vector to convert.
- */
-PyObject * create( std::vector< std::string > vec, bool const modify )
-{
-    LVARRAY_UNUSED_VARIABLE( modify );
-    return internal::createPyListOfStrings( vec.data(), integerConversion< std::ptrdiff_t >( vec.size() ) );
-}
-
 namespace internal
 {
 
-/**
- * @brief create and return a Python list of strings from an array of std::strings.
- *        the Python strings will be copies.
- * @param strptr a pointer to the strings to convert
- * @param size the number of strings in the array
- */
-PyObject * createPyListOfStrings( std::string * strptr, std::ptrdiff_t size ){
-    PyObject * pystr;
-    PyObject * pylist = PyList_New( size );
-    for ( std::ptrdiff_t i = 0; i < size; ++i )
-    {
-         pystr = PyUnicode_FromString( strptr[ i ].c_str() );
-         PyList_SET_ITEM( pylist, integerConversion< Py_ssize_t >( i ), pystr );
-    }
-    return pylist;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+PyObject * createPyListOfStrings( std::string const * const strptr, std::ptrdiff_t const size )
+{
+  PyObject * pylist = PyList_New( size );
+  for ( std::ptrdiff_t i = 0; i < size; ++i )
+  {
+    PyObject * pystr = PyUnicode_FromString( strptr[ i ].c_str() );
+    PyList_SET_ITEM( pylist, integerConversion< Py_ssize_t >( i ), pystr );
+  }
+  return pylist;
 }
 
 } // namespace internal

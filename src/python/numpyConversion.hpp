@@ -24,19 +24,13 @@
 #pragma once
 
 // Source include
+#include "pythonForwardDeclarations.hpp"
 #include "../IntegerConversion.hpp"
 
 // system includes
 #include <vector>
 #include <typeindex>
 #include <type_traits>
-
-// Forward declaration of PyObject. Taken from
-// https://mail.python.org/pipermail/python-dev/2003-August/037601.html
-#ifndef PyObject_HEAD
-struct _object;
-typedef _object PyObject;
-#endif
 
 namespace LvArray
 {
@@ -45,6 +39,9 @@ namespace python
 namespace internal
 {
 
+/**
+ *
+ */
 PyObject * createNumpyArrayImpl( void * const data,
                                  std::type_index const type,
                                  bool const dataIsConst,
@@ -54,6 +51,9 @@ PyObject * createNumpyArrayImpl( void * const data,
 
 } // namespace internal
 
+/**
+ *
+ */
 template< typename T, typename INDEX_TYPE >
 std::enable_if_t< std::is_arithmetic< T >::value, PyObject * >
 createNumPyArray( T * const data,
@@ -79,6 +79,9 @@ createNumPyArray( T * const data,
                                          strides.data() );
 }
 
+/**
+ *
+ */
 template< typename T >
 std::enable_if_t< std::is_arithmetic< T >::value, PyObject * >
 create( T & value, bool const modify )
@@ -93,6 +96,11 @@ create( T & value, bool const modify )
                                          &dims,
                                          &strides );
 }
+
+/**
+ *
+ */
+PyObject * create( std::string const & value, bool const modify );
 
 } // namespace python
 } // namespace LvArray
