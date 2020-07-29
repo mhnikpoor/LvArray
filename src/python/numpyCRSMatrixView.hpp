@@ -70,7 +70,7 @@ create( CRSMatrixView<T, COLTYPE const, INDEX_TYPE const, BUFFER_TYPE > const & 
                                      createNumPyArray( entries, modify, 1, &numNonZeros, &strides ),
                                      createNumPyArray( columns, false, 1, &numNonZeros, &strides ),
                                      createNumPyArray( offsets, false, 1, &offsetSize, &strides ));
-};
+}
 
 } // namespace python
 } // namespace LvArray
