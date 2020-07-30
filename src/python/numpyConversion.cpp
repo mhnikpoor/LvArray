@@ -22,7 +22,7 @@
 
 // Source includes
 #include "numpyConversion.hpp"
-#include "../StringUtilities.hpp"
+#include "../system.hpp"
 
 // System includes
 #pragma GCC diagnostic push
@@ -87,7 +87,7 @@ PyObject * createNumpyArrayImpl( void * const data,
 
   std::pair< int, std::size_t > const typeInfo = getNumPyType( type );
   if ( typeInfo.first == NPY_NOTYPE ){
-    PyErr_SetString(PyExc_TypeError, ( "No NumPy type for " + demangle( type.name() ) ).c_str() );
+    PyErr_SetString(PyExc_TypeError, ( "No NumPy type for " + system::demangle( type.name() ) ).c_str() );
     return NULL;
   }
   std::vector< npy_intp > byteStrides( ndim );

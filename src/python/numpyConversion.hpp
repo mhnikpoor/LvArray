@@ -25,7 +25,7 @@
 
 // Source include
 #include "pythonForwardDeclarations.hpp"
-#include "../IntegerConversion.hpp"
+#include "../limits.hpp"
 
 // system includes
 #include <vector>

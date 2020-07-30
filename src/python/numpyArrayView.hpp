@@ -26,7 +26,7 @@
 // Source includes
 #include "numpyConversion.hpp"
 #include "../ArrayView.hpp"
-#include "../IntegerConversion.hpp"
+#include "../limits.hpp"
 
 // System includes
 #include <vector>

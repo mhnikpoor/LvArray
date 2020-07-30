@@ -26,7 +26,7 @@
 // source includes
 #include "numpyArrayView.hpp"
 #include "numpySortedArrayView.hpp"
-#include "../templateHelpers.hpp"
+#include "../typeManipulation.hpp"
 
 namespace LvArray
 {
