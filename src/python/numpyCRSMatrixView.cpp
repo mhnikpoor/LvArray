@@ -24,7 +24,7 @@
 #include "numpyCRSMatrixView.hpp"
 
 // System includes
-#define NPY_NO_DEPRECATED_API NPY_1_15_API_VERSION
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
 
 namespace LvArray
