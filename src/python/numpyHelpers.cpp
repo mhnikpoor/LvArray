@@ -1,0 +1,239 @@
+/*
+ *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Copyright (c) 2019, Lawrence Livermore National Security, LLC.
+ *
+ * Produced at the Lawrence Livermore National Laboratory
+ *
+ * LLNL-CODE-746361
+ *
+ * All rights reserved. See COPYRIGHT for details.
+ *
+ * This file is part of the GEOSX Simulation Framework.
+ *
+ * GEOSX is a free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License (as published by the
+ * Free Software Foundation) version 2.1 dated February 1999.
+ *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
+// Python must be the first include.
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+// Source includes
+#include "numpyHelpers.hpp"
+#include "pythonHelpers.hpp"
+#include "../system.hpp"
+
+// System includes
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/arrayobject.h>
+#pragma GCC diagnostic pop
+
+#include <tuple>
+
+namespace LvArray
+{
+namespace python
+{
+
+static NumPyImporter numpyImporter;
+
+namespace internal
+{
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+PyObject * createNumpyArrayImpl( void * const data,
+                                 std::type_index const type,
+                                 bool const dataIsConst,
+                                 int const ndim,
+                                 std::ptrdiff_t const * const dims,
+                                 std::ptrdiff_t const * const strides )
+{
+  std::pair< int, std::size_t > const typeInfo = getNumPyType( type );
+  
+  PYTHON_ERROR_IF( typeInfo.first == NPY_NOTYPE, PyExc_TypeError,
+                   "No NumPy type for " << system::demangle( type.name() ), nullptr );
+
+  std::vector< npy_intp > byteStrides( ndim );
+  std::vector< npy_intp > npyDims( ndim );
+
+  for ( int i = 0; i < ndim; ++i )
+  {
+    byteStrides[ i ] = integerConversion< npy_intp >( strides[ i ] * typeInfo.second );
+    npyDims[ i ] = integerConversion< npy_intp >( dims[ i ] );
+  }
+
+  int const flags = dataIsConst ? 0 : NPY_ARRAY_WRITEABLE;
+  return PyArray_NewFromDescr( &PyArray_Type,
+                               PyArray_DescrFromType( typeInfo.first ),
+                               ndim,
+                               npyDims.data(),
+                               byteStrides.data(),
+                               data,
+                               flags,
+                               nullptr );
+}
+
+} // namespace internal
+
+int import_array_wrapper()
+{ 
+  import_array1( -1 );
+  return 0;
+}
+
+NumPyImporter::NumPyImporter()
+{
+  LVARRAY_ERROR_IF( import_array_wrapper() == -1, "Failed to import numpy." );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+PyObject * create( std::string const & value, bool const modify )
+{
+  LVARRAY_UNUSED_VARIABLE( modify );
+  return PyUnicode_FromString( value.c_str() );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t >
+parseNumPyArray( PyObject * const args, std::type_index const expectedType )
+{
+  using ReturnType = std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t >;
+  ReturnType const ErrorReturn{ nullptr, nullptr, 0 };
+
+
+  PyObjectRef< PyArrayObject > array;
+  if ( !PyArg_ParseTuple( args, "O&", PyArray_Converter, array.getAddress() ) )
+  { return ErrorReturn; }
+
+  PYTHON_ERROR_IF( PyArray_NDIM( array ) > 1, PyExc_RuntimeError,
+                   "Expected a zero or one dimensional array.", ErrorReturn );
+
+  PYTHON_ERROR_IF( !PyArray_ISCARRAY( array ), PyExc_RuntimeError,
+                   "Data must be contiguous and well behaved.", ErrorReturn );
+
+  int const srcNumPyType = PyArray_TYPE( array );
+  int const expectedNumPyType = getNumPyType( expectedType ).first;
+
+  if ( srcNumPyType == expectedNumPyType )
+  {
+    void const * vals = PyArray_DATA( array );
+    std::ptrdiff_t const nVals = integerConversion< std::ptrdiff_t >( PyArray_SIZE( array ) );
+    return ReturnType{ reinterpret_cast< PyObject * >( array.release() ), vals, nVals };
+  }
+
+  PYTHON_ERROR_IF( !PyArray_CanCastSafely( srcNumPyType, expectedNumPyType ), PyExc_RuntimeError,
+                   "Cannot safely convert " << getNumPyTypeName( srcNumPyType ) <<
+                   " to " << getNumPyTypeName( expectedNumPyType ), ErrorReturn );
+
+  PyArrayObject * convertedArray = reinterpret_cast< PyArrayObject * >( PyArray_Cast( array, expectedNumPyType ) );
+  void const * vals = PyArray_DATA( convertedArray );
+  std::ptrdiff_t const nVals = integerConversion< std::ptrdiff_t >( PyArray_SIZE( convertedArray ) );
+  return ReturnType{ reinterpret_cast< PyObject * >( convertedArray ), vals, nVals };
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::type_index getTypeIndexFromNumPy( int const numpyType )
+{
+  if( numpyType == NPY_BYTE )
+  { return typeid( signed char ); }
+  if( numpyType == NPY_UBYTE )
+  { return typeid( unsigned char ); }
+  if( numpyType == NPY_SHORT )
+  { return typeid( short ); }
+  if( numpyType == NPY_USHORT )
+  { return typeid( unsigned short ); }
+  if( numpyType == NPY_INT )
+  { return typeid( int ); }
+  if( numpyType == NPY_UINT )
+  { return typeid( unsigned int ); }
+  if( numpyType == NPY_LONG )
+  { return typeid( long ); }
+  if( numpyType == NPY_ULONG )
+  { return typeid( unsigned long ); }
+  if( numpyType == NPY_LONGLONG )
+  { return typeid( long long ); }
+  if( numpyType == NPY_ULONGLONG )
+  { return typeid( unsigned long long ); }
+  if( numpyType == NPY_FLOAT )
+  { return typeid( float ); }
+  if( numpyType == NPY_DOUBLE )
+  { return typeid( double ); }
+  if( numpyType == NPY_LONGDOUBLE )
+  { return typeid( long double ); }
+
+  return typeid( nullptr );
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string getNumPyTypeName( int const numpyType )
+{
+  if( numpyType == NPY_BYTE )
+  { return "NPY_BYTE"; }
+  if( numpyType == NPY_UBYTE )
+  { return "NPY_UBYTE"; }
+  if( numpyType == NPY_SHORT )
+  { return "NPY_SHORT"; }
+  if( numpyType == NPY_USHORT )
+  { return "NPY_USHORT"; }
+  if( numpyType == NPY_INT )
+  { return "NPY_INT"; }
+  if( numpyType == NPY_UINT )
+  { return "NPY_UINT"; }
+  if( numpyType == NPY_LONG )
+  { return "NPY_LONG"; }
+  if( numpyType == NPY_ULONG )
+  { return "NPY_ULONG"; }
+  if( numpyType == NPY_LONGLONG )
+  { return "NPY_LONGLONG"; }
+  if( numpyType == NPY_ULONGLONG )
+  { return "NPY_ULONGLONG"; }
+  if( numpyType == NPY_FLOAT )
+  { return "NPY_FLOAT"; }
+  if( numpyType == NPY_DOUBLE )
+  { return "NPY_DOUBLE"; }
+  if( numpyType == NPY_LONGDOUBLE )
+  { return "NPY_LONGDOUBLE"; }
+
+  return "Error: unrecognized type";
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::pair< int, std::size_t > getNumPyType( std::type_index const typeIndex )
+{
+  if( typeIndex == std::type_index( typeid( char ) ) )
+  { return { std::is_signed< char >::value ? NPY_BYTE : NPY_UBYTE, sizeof( char ) }; }
+  if( typeIndex == std::type_index( typeid( signed char ) ) )
+  { return { NPY_BYTE, sizeof( signed char ) }; }
+  if( typeIndex == std::type_index( typeid( unsigned char ) ) )
+  { return { NPY_UBYTE, sizeof( unsigned char ) }; }
+  if( typeIndex == std::type_index( typeid( short ) ) )
+  { return { NPY_SHORT, sizeof( short ) }; }
+  if( typeIndex == std::type_index( typeid( unsigned short ) ) )
+  { return { NPY_USHORT, sizeof( unsigned short ) }; }
+  if( typeIndex == std::type_index( typeid( int ) ) )
+  { return { NPY_INT, sizeof( int ) }; }
+  if( typeIndex == std::type_index( typeid( unsigned int ) ) )
+  { return { NPY_UINT, sizeof( unsigned int ) }; }
+  if( typeIndex == std::type_index( typeid( long ) ) )
+  { return { NPY_LONG, sizeof( long ) }; }
+  if( typeIndex == std::type_index( typeid( unsigned long ) ) )
+  { return { NPY_ULONG, sizeof( unsigned long ) }; }
+  if( typeIndex == std::type_index( typeid( long long ) ) )
+  { return { NPY_LONGLONG, sizeof( long long ) }; }
+  if( typeIndex == std::type_index( typeid( unsigned long long ) ) )
+  { return { NPY_ULONGLONG, sizeof( unsigned long long ) }; }
+  if( typeIndex == std::type_index( typeid( float ) ) )
+  { return { NPY_FLOAT, sizeof( float ) }; }
+  if( typeIndex == std::type_index( typeid( double ) ) )
+  { return { NPY_DOUBLE, sizeof( double ) }; }
+  if( typeIndex == std::type_index( typeid( long double ) ) )
+  { return { NPY_LONGDOUBLE, sizeof( long double ) }; }
+  return { NPY_NOTYPE, std::numeric_limits< std::size_t >::max() };
+}
+
+} // namespace python
+} // namespace LvArray

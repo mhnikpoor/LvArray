@@ -1,6 +1,6 @@
 set( pythonTests
-     testPythonArray.cpp
-     testPythonSortedArray.cpp
+     testPyArray.cpp
+     testPySortedArray.cpp
      testPythonScalars.cpp
      testPythonCRSMatrix.cpp
      testPythonListOfStrings.cpp

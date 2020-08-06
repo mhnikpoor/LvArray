@@ -1,16 +1,21 @@
 set( pylvarray_headers
      python.hpp
      pythonForwardDeclarations.hpp
-     numpyConversion.hpp
+     pythonHelpers.hpp
+     numpyHelpers.hpp
      numpyArrayView.hpp
-     numpySortedArrayView.hpp
+     PySortedArray.hpp
+     PyArray.hpp
      numpyCRSMatrixView.hpp
     )
 
 set( pylvarray_sources
-     numpyConversion.cpp
+     pythonHelpers.cpp
+     numpyHelpers.cpp
      numpyCRSMatrixView.cpp
      numpyArrayView.cpp
+     PySortedArray.cpp
+     PyArray.cpp
     )
 
 message("adding pylvarray library")

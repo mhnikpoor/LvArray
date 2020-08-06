@@ -43,14 +43,10 @@ std::ostream & operator<<( std::ostream & stream,
   stream << "{ ";
 
   if( slice.size( 0 ) > 0 )
-  {
-    stream << slice[ 0 ];
-  }
+  { stream << slice[ 0 ]; }
 
   for( INDEX_TYPE i = 1; i < slice.size( 0 ); ++i )
-  {
-    stream << ", " << slice[ i ];
-  }
+  { stream << ", " << slice[ i ]; }
 
   stream << " }";
   return stream;
@@ -96,15 +92,13 @@ std::ostream & operator<< ( std::ostream & stream,
     return stream;
   }
 
-  stream << "{ " << view[ 0 ];
+  stream << "{ ";
 
   if( view.size() > 0 )
-    stream << view[ 0 ];
+  { stream << view[ 0 ]; }
 
   for( INDEX_TYPE i = 1; i < view.size(); ++i )
-  {
-    stream << ", " << view[ i ];
-  }
+  { stream << ", " << view[ i ]; }
 
   stream << " }";
   return stream;

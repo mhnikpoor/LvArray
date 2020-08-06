@@ -24,7 +24,7 @@
 #pragma once
 
 // source includes
-#include "numpyConversion.hpp"
+#include "numpyHelpers.hpp"
 #include "../CRSMatrixView.hpp"
 
 namespace LvArray

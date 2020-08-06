@@ -20,7 +20,7 @@
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #define PY_ARRAY_UNIQUE_SYMBOL LvArray_ARRAY_API
 
-#include "python/numpyConversion.hpp"
+#include "python/numpyHelpers.hpp"
 
 #include <Python.h>
 #include <numpy/arrayobject.h>

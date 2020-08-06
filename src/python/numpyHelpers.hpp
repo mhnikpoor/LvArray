@@ -17,7 +17,7 @@
  */
 
 /**
- * @file numpyConversion.hpp
+ * @file numpyHelpers.hpp
  * @brief Contains methods to help with conversion to python objects.
  */
 
@@ -25,6 +25,7 @@
 
 // Source include
 #include "pythonForwardDeclarations.hpp"
+#include "pythonHelpers.hpp"
 #include "../limits.hpp"
 
 // system includes
@@ -50,6 +51,14 @@ PyObject * createNumpyArrayImpl( void * const data,
                                  std::ptrdiff_t const * const strides );
 
 } // namespace internal
+
+/**
+ * 
+ */
+struct NumPyImporter
+{
+  NumPyImporter();
+};
 
 /**
  *
@@ -101,6 +110,27 @@ create( T & value, bool const modify )
  *
  */
 PyObject * create( std::string const & value, bool const modify );
+
+/**
+ *
+ */
+std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t >
+parseNumPyArray( PyObject * const args, std::type_index const expectedType );
+
+/**
+ *
+ */
+std::type_index getTypeIndexFromNumPy( int const numpyType );
+
+/**
+ *
+ */
+std::string getNumPyTypeName( int const nympyType );
+
+/**
+ *
+ */
+std::pair< int, std::size_t > getNumPyType( std::type_index const typeIndex );
 
 } // namespace python
 } // namespace LvArray

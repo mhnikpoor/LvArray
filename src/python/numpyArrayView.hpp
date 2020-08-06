@@ -24,7 +24,7 @@
 #pragma once
 
 // Source includes
-#include "numpyConversion.hpp"
+#include "numpyHelpers.hpp"
 #include "../ArrayView.hpp"
 #include "../limits.hpp"
 
