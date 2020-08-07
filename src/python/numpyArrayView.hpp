@@ -63,25 +63,6 @@ inline PyObject * create( std::vector< std::string > const & vec, bool const mod
 }
 
 /**
- * @brief Return a NumPy view of an ArrayView. This NumPy view may not be resized. If T is const,
- *   the contents may not be modified. The NumPy view will be invalidated if the array is
- *   reallocated.
- * @tparam T type of data that is contained by the array.
- * @tparam NDIM number of dimensions in array
- * @tparam INDEX_TYPE the integer to use for indexing.
- * @tparam BUFFER_TYPE A class that defines how to actually allocate memory for the Array. Must take
- *   one template argument that describes the type of the data being stored (T).
- * @param arr the ArrayView to convert to NumPy.
- */
-template< typename T, int NDIM, int USD, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-std::enable_if_t< std::is_arithmetic< T >::value, PyObject * >
-create( ArrayView<T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & arr, bool const modify )
-{
-    arr.move( MemorySpace::CPU, modify );
-    return createNumPyArray( arr.data(), modify, NDIM, arr.dims(), arr.strides() );
-}
-
-/**
  * @brief create and return a Python list of strings from an ArrayView of std::strings.
  *   the Python strings will be copies.
  * @param arr the ArrayView to convert.
@@ -90,9 +71,9 @@ create( ArrayView<T, NDIM, USD, INDEX_TYPE, BUFFER_TYPE > const & arr, bool cons
 template< template< typename > class BUFFER_TYPE >
 PyObject * create( ArrayView< std::string, 1, 0, std::ptrdiff_t, BUFFER_TYPE > const & arr, bool const modify )
 {
-    LVARRAY_UNUSED_VARIABLE( modify );
-    arr.move( MemorySpace::CPU, false );
-    return internal::createPyListOfStrings( arr.data(), integerConversion< std::ptrdiff_t >( arr.size() ) );
+  LVARRAY_UNUSED_VARIABLE( modify );
+  arr.move( MemorySpace::CPU, false );
+  return internal::createPyListOfStrings( arr.data(), integerConversion< std::ptrdiff_t >( arr.size() ) );
 }
 
 } // namespace python

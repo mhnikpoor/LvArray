@@ -19,12 +19,8 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "Array.hpp"
-#include "MallocBuffer.hpp"
 #include "python/PyArray.hpp"
-
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
+#include "MallocBuffer.hpp"
 
 static LvArray::Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, LvArray::MallocBuffer > array1DOfInts;
 static LvArray::Array< double, 1, RAJA::PERM_I, int, LvArray::MallocBuffer > array1DOfDoubles;
@@ -88,16 +84,7 @@ static PyObject * getArray4DKILJOfDoubles( PyObject * const self, PyObject * con
   return LvArray::python::create( array4DKILJOfDoubles, modify );
 }
 
-// Allow mixing designated and non-designated initializers in the same initializer list.
-// I don't like the pragmas but the designated initializers is the only sane way to do this stuff.
-// The other option is to put this in a `.c` file and compile with the C compiler, but that seems like more work.
-#pragma GCC diagnostic push
-#if defined( __clang_version__ )
-  #pragma GCC diagnostic ignored "-Wc99-designator"
-#else
-  #pragma GCC diagnostic ignored "-Wpedantic"
-  #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#endif
+BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
 /**
  * Array of functions and docstrings to export to Python
@@ -122,25 +109,15 @@ static struct PyModuleDef testPyArrayModule = {
   .m_methods = testPyArrayFuncs,
 };
 
-#pragma GCC diagnostic pop
+END_ALLOW_DESIGNATED_INITIALIZERS
 
 PyMODINIT_FUNC
 PyInit_testPyArray(void)
 {
-  import_array();
+  LvArray::python::PyObjectRef<> module = PyModule_Create( &testPyArrayModule );
 
-  if( PyType_Ready( LvArray::python::getPyArrayType() ) < 0 )
+  if ( !LvArray::python::addTypeToModule( module, LvArray::python::getPyArrayType(), "Array" ) )
   { return nullptr; }
 
-  PyObject * module = PyModule_Create( &testPyArrayModule );
-
-  Py_INCREF( LvArray::python::getPyArrayType() );
-  if ( PyModule_AddObject( module, "Array", reinterpret_cast< PyObject * >( LvArray::python::getPyArrayType() ) ) < 0 )
-  {
-    Py_DECREF( LvArray::python::getPyArrayType() );
-    Py_DECREF( module );
-    return nullptr;
-  }
-
-  return module;
+  return module.release();
 }

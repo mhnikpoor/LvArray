@@ -4,18 +4,18 @@ set( pylvarray_headers
      pythonHelpers.hpp
      numpyHelpers.hpp
      numpyArrayView.hpp
-     PySortedArray.hpp
      PyArray.hpp
-     numpyCRSMatrixView.hpp
+     PySortedArray.hpp
+     PyCRSMatrix.hpp
     )
 
 set( pylvarray_sources
      pythonHelpers.cpp
      numpyHelpers.cpp
-     numpyCRSMatrixView.cpp
      numpyArrayView.cpp
-     PySortedArray.cpp
      PyArray.cpp
+     PySortedArray.cpp
+     PyCRSMatrix.cpp
     )
 
 message("adding pylvarray library")

@@ -1,8 +1,8 @@
 set( pythonTests
      testPyArray.cpp
      testPySortedArray.cpp
+     testPyCRSMatrix.cpp
      testPythonScalars.cpp
-     testPythonCRSMatrix.cpp
      testPythonListOfStrings.cpp
     )
 

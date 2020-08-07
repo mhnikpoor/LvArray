@@ -83,8 +83,12 @@ static PyObject * PySortedArray_insert( PySortedArray * const self, PyObject * c
   VERIFY_INITIALIZED( self );
   VERIFY_MODIFIABLE( self );
 
+  PyObject * obj;
+  if ( !PyArg_ParseTuple( args, "O", &obj ) )
+  { return nullptr; }
+
   std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > ret =
-    parseNumPyArray( args, self->sortedArray->valueType() );
+    parseNumPyArray( obj, self->sortedArray->valueType() );
 
   if ( std::get< 0 >( ret ) == nullptr )
   { return nullptr; }
@@ -100,8 +104,12 @@ static PyObject * PySortedArray_remove( PySortedArray * const self, PyObject * c
   VERIFY_INITIALIZED( self );
   VERIFY_MODIFIABLE( self );
 
+  PyObject * obj;
+  if ( !PyArg_ParseTuple( args, "O", &obj ) )
+  { return nullptr; }
+
   std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > ret =
-    parseNumPyArray( args, self->sortedArray->valueType() );
+    parseNumPyArray( obj, self->sortedArray->valueType() );
 
   if ( std::get< 0 >( ret ) == nullptr )
   { return nullptr; }
@@ -122,17 +130,7 @@ static PyObject * PySortedArray_toNumPy( PySortedArray * const self, PyObject * 
   return self->sortedArray->toNumPy();
 }
 
-// Allow mixing designated and non-designated initializers in the same initializer list.
-// I don't like the pragmas but the designated initializers is the only sane way to do this stuff.
-// The other option is to put this in a `.c` file and compile with the C compiler, but that seems like more work.
-#pragma GCC diagnostic push
-#if defined( __clang_version__ )
-  #pragma GCC diagnostic ignored "-Wc99-designator"
-#else
-  #pragma GCC diagnostic ignored "-Wpedantic"
-  #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#endif
-
+BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
 static PyMethodDef PySortedArray_methods[] = {
   { "insert", (PyCFunction) PySortedArray_insert, METH_VARARGS, PySortedArray_insertDocString },
@@ -154,7 +152,7 @@ static PyTypeObject PySortedArrayType = {
   .tp_new = PyType_GenericNew,
 };
 
-#pragma GCC diagnostic pop
+END_ALLOW_DESIGNATED_INITIALIZERS
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 PyTypeObject * getPySortedArrayType()

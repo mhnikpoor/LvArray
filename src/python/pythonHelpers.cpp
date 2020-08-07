@@ -31,15 +31,15 @@ namespace internal
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void xincref( void * obj )
+void xincref( PyObject * const obj )
 { Py_XINCREF( obj ); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void xdecref( void * obj )
+void xdecref( PyObject * const obj )
 { Py_XDECREF( obj ); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool canConvert( PyObject * const obj, PyTypeObject * type )
+bool isInstanceOf( PyObject * const obj, PyTypeObject * const type )
 {
   PYTHON_ERROR_IF( obj == nullptr, PyExc_RuntimeError, "Passed a nullptr as an argument.", false );
 
@@ -53,5 +53,24 @@ bool canConvert( PyObject * const obj, PyTypeObject * type )
 }
 
 } // namespace internal
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool addTypeToModule( PyObject * const module,
+                      PyTypeObject * const type,
+                      char const * const typeName )
+{
+  if( PyType_Ready( type ) < 0 )
+  { return false; }
+
+  Py_INCREF( type );
+  if ( PyModule_AddObject( module, typeName, reinterpret_cast< PyObject * >( type ) ) < 0 )
+  {
+    Py_DECREF( type );
+    return false;
+  }
+
+  return true;
+}
+
 } // namespace python
 } // namespace LvArray

@@ -52,13 +52,7 @@ PyObject * createNumpyArrayImpl( void * const data,
 
 } // namespace internal
 
-/**
- * 
- */
-struct NumPyImporter
-{
-  NumPyImporter();
-};
+bool import_array_wrapper();
 
 /**
  *
@@ -115,7 +109,7 @@ PyObject * create( std::string const & value, bool const modify );
  *
  */
 std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t >
-parseNumPyArray( PyObject * const args, std::type_index const expectedType );
+parseNumPyArray( PyObject * const obj, std::type_index const expectedType );
 
 /**
  *

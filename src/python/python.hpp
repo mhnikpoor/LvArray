@@ -24,8 +24,9 @@
 #pragma once
 
 // source includes
-#include "numpyArrayView.hpp"
+#include "PyArray.hpp"
 #include "PySortedArray.hpp"
+#include "PyCRSMatrix.hpp"
 #include "../typeManipulation.hpp"
 
 namespace LvArray

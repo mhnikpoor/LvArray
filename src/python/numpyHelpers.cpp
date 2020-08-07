@@ -39,8 +39,6 @@ namespace LvArray
 namespace python
 {
 
-static NumPyImporter numpyImporter;
-
 namespace internal
 {
 
@@ -52,6 +50,9 @@ PyObject * createNumpyArrayImpl( void * const data,
                                  std::ptrdiff_t const * const dims,
                                  std::ptrdiff_t const * const strides )
 {
+  if ( !import_array_wrapper() )
+  { return nullptr; }
+
   std::pair< int, std::size_t > const typeInfo = getNumPyType( type );
   
   PYTHON_ERROR_IF( typeInfo.first == NPY_NOTYPE, PyExc_TypeError,
@@ -79,15 +80,12 @@ PyObject * createNumpyArrayImpl( void * const data,
 
 } // namespace internal
 
-int import_array_wrapper()
-{ 
-  import_array1( -1 );
-  return 0;
-}
-
-NumPyImporter::NumPyImporter()
+bool import_array_wrapper()
 {
-  LVARRAY_ERROR_IF( import_array_wrapper() == -1, "Failed to import numpy." );
+  if ( PyArray_API == nullptr )
+  { import_array1( false ); }
+
+  return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,14 +97,16 @@ PyObject * create( std::string const & value, bool const modify )
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t >
-parseNumPyArray( PyObject * const args, std::type_index const expectedType )
+parseNumPyArray( PyObject * const obj, std::type_index const expectedType )
 {
   using ReturnType = std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t >;
   ReturnType const ErrorReturn{ nullptr, nullptr, 0 };
 
+  if ( !import_array_wrapper() )
+  { return ErrorReturn; }
 
   PyObjectRef< PyArrayObject > array;
-  if ( !PyArg_ParseTuple( args, "O&", PyArray_Converter, array.getAddress() ) )
+  if ( PyArray_Converter( obj, reinterpret_cast< PyObject ** >( array.getAddress() ) ) == 0 )
   { return ErrorReturn; }
 
   PYTHON_ERROR_IF( PyArray_NDIM( array ) > 1, PyExc_RuntimeError,

@@ -116,26 +116,18 @@ public:
     m_sortedArray( sortedArray )
   {}
 
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual ~PySortedArrayWrapper() = default;
 
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual std::string repr() const final override
   { return system::demangleType< SortedArray< T, INDEX_TYPE, BUFFER_TYPE > >(); }
 
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual std::type_index valueType() const
   { return std::type_index( typeid( T ) ); }
 
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual std::ptrdiff_t insert( void const * const values,
                                  std::ptrdiff_t const nVals ) final override
   {
@@ -144,9 +136,7 @@ public:
     return integerConversion< std::ptrdiff_t >( m_sortedArray.insert( castedValues, castedValues + nVals ) );
   }
 
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual std::ptrdiff_t remove( void const * const values,
                                  std::ptrdiff_t const nVals ) final override
   {
@@ -155,9 +145,7 @@ public:
     return integerConversion< std::ptrdiff_t >( m_sortedArray.remove( castedValues, castedValues + nVals ) );
   }
 
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual PyObject * toNumPy() final override
   {
     INDEX_TYPE const dims = m_sortedArray.size();

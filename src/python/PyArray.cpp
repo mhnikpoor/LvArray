@@ -52,16 +52,22 @@ struct PyArray
   PyObject_HEAD
 
   static constexpr char const * docString =
-  "";
+  "A Python interface to LvArray::Array.";
 
   internal::PyArrayWrapperBase * array;
 };
 
-
+/**
+ * @brief The Python destructor for PyArray.
+ * @param self The PyArray to destroy.
+ */
 static void PyArray_dealloc( PyArray * const self )
 { delete self->array; }
 
-
+/**
+ * @brief The Python __repr__ method for PyArray.
+ * @param self The PyArray to represent.
+ */
 static PyObject * PyArray_repr( PyObject * const obj )
 {
   PyArray * const self = convert< PyArray >( obj, getPyArrayType() );
@@ -76,7 +82,14 @@ static PyObject * PyArray_repr( PyObject * const obj )
 }
 
 static constexpr char const * PyArray_getSingleParameterResizeIndexDocString =
-"";
+"getSingleParameterResizeIndex()\n"
+"--\n\n"
+"Return the default resize dimension.\n"
+"\n"
+"Returns\n"
+"_______\n"
+"int\n"
+"    The default resize dimension.";
 static PyObject * PyArray_getSingleParameterResizeIndex( PyArray * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -87,7 +100,13 @@ static PyObject * PyArray_getSingleParameterResizeIndex( PyArray * const self, P
 }
 
 static constexpr char const * PyArray_setSingleParameterResizeIndexDocString =
-"";
+"setSingleParameterResizeIndex(dim)\n"
+"--\n\n"
+"Set the default resize dimension.\n"
+"\n"
+"Returns\n"
+"_______\n"
+"None";
 static PyObject * PyArray_setSingleParameterResizeIndex( PyArray * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -97,7 +116,7 @@ static PyObject * PyArray_setSingleParameterResizeIndex( PyArray * const self, P
   if ( !PyArg_ParseTuple( args, "i", &dim ) )
   { return nullptr; }
 
-  PYTHON_ERROR_IF( dim < 0 || dim > self->array->ndim(), PyExc_RuntimeError,
+  PYTHON_ERROR_IF( dim < 0 || dim >= self->array->ndim(), PyExc_RuntimeError,
                    "Invalid argument to setSingleParameterResizeIndex.", nullptr );
 
   self->array->setSingleParameterResizeIndex( dim );
@@ -106,7 +125,13 @@ static PyObject * PyArray_setSingleParameterResizeIndex( PyArray * const self, P
 }
 
 static constexpr char const * PyArray_resizeDocString =
-"";
+"resize(newDim)\n"
+"--\n\n"
+"Resize the default dimension.\n"
+"\n"
+"Returns\n"
+"_______\n"
+"None";
 static PyObject * PyArray_resize( PyArray * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -125,15 +150,25 @@ static PyObject * PyArray_resize( PyArray * const self, PyObject * const args )
 }
 
 static constexpr char const * PyArray_resizeAllDocString =
-"";
+"resizeAll(newDims)\n"
+"--\n\n"
+"Resize all the dimensions.\n"
+"\n"
+"Returns\n"
+"_______\n"
+"None";
 static PyObject * PyArray_resizeAll( PyArray * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
   VERIFY_MODIFIABLE( self );
 
+  PyObject * obj;
+  if ( !PyArg_ParseTuple( args, "O", &obj ) )
+  { return nullptr; }
+
   std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > ret =
-    parseNumPyArray( args, typeid( std::ptrdiff_t ) );
+    parseNumPyArray( obj, typeid( std::ptrdiff_t ) );
 
   if ( std::get< 0 >( ret ) == nullptr )
   { return nullptr; }
@@ -148,7 +183,14 @@ static PyObject * PyArray_resizeAll( PyArray * const self, PyObject * const args
 }
 
 static constexpr char const * PyArray_toNumPyDocString =
-"";
+"toNumPy()\n"
+"--\n\n"
+"Return a NumPy ndarray representing a shallow copy of the LvArray::Array.\n"
+"\n"
+"Returns\n"
+"_______\n"
+"NumPy ndarray\n"
+"    A shallow copy of the LvArray::Array.";
 static PyObject * PyArray_toNumPy( PyArray * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -159,20 +201,10 @@ static PyObject * PyArray_toNumPy( PyArray * const self, PyObject * const args )
   return self->array->toNumPy();
 }
 
-// Allow mixing designated and non-designated initializers in the same initializer list.
-// I don't like the pragmas but the designated initializers is the only sane way to do this stuff.
-// The other option is to put this in a `.c` file and compile with the C compiler, but that seems like more work.
-#pragma GCC diagnostic push
-#if defined( __clang_version__ )
-  #pragma GCC diagnostic ignored "-Wc99-designator"
-#else
-  #pragma GCC diagnostic ignored "-Wpedantic"
-  #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#endif
-
+BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
 static PyMethodDef PyArray_methods[] = {
-  { "getSingleParameterResizeIndex", (PyCFunction) PyArray_getSingleParameterResizeIndex, METH_VARARGS, PyArray_getSingleParameterResizeIndexDocString },
+  { "getSingleParameterResizeIndex", (PyCFunction) PyArray_getSingleParameterResizeIndex, METH_NOARGS, PyArray_getSingleParameterResizeIndexDocString },
   { "setSingleParameterResizeIndex", (PyCFunction) PyArray_setSingleParameterResizeIndex, METH_VARARGS, PyArray_setSingleParameterResizeIndexDocString },
   { "resize", (PyCFunction) PyArray_resize, METH_VARARGS, PyArray_resizeDocString },
   { "resizeAll", (PyCFunction) PyArray_resizeAll, METH_VARARGS, PyArray_resizeAllDocString },
@@ -193,7 +225,7 @@ static PyTypeObject PyArrayType = {
   .tp_new = PyType_GenericNew,
 };
 
-#pragma GCC diagnostic pop
+END_ALLOW_DESIGNATED_INITIALIZERS
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 PyTypeObject * getPyArrayType()

@@ -246,8 +246,8 @@ public:
    */
   ///@{
 
-  using ParentClass::getColumns;
   using ParentClass::getOffsets;
+  using ParentClass::getColumns;
   using ParentClass::getEntries;
 
   ///@}

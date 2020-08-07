@@ -19,24 +19,24 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include "python/PySortedArray.hpp"
+#include "python/PyCRSMatrix.hpp"
 #include "MallocBuffer.hpp"
 
-static LvArray::SortedArray< int, std::ptrdiff_t, LvArray::MallocBuffer > sortedArrayOfInts;
-static LvArray::SortedArray< long, std::ptrdiff_t, LvArray::MallocBuffer > sortedArrayOfLongs;
+static LvArray::CRSMatrix< int, int, int, LvArray::MallocBuffer > matrixOfInts;
+static LvArray::CRSMatrix< double, long, long, LvArray::MallocBuffer > matrixOfDoubles;
 
-static PyObject * getSortedArrayOfInts( PyObject * const self, PyObject * const args )
+static PyObject * getMatrixOfInts( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
-  
+
   int modify;
   if( !PyArg_ParseTuple( args, "p", &modify ) )
   { return nullptr; }
 
-  return LvArray::python::create( sortedArrayOfInts, modify );
+  return LvArray::python::create( matrixOfInts, modify );
 }
 
-static PyObject * getSortedArrayOfLongs( PyObject * const self, PyObject * const args )
+static PyObject * getMatrixOfDoubles( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
   
@@ -44,7 +44,7 @@ static PyObject * getSortedArrayOfLongs( PyObject * const self, PyObject * const
   if( !PyArg_ParseTuple( args, "p", &modify ) )
   { return nullptr; }
 
-  return LvArray::python::create( sortedArrayOfLongs, modify );
+  return LvArray::python::create( matrixOfDoubles, modify );
 }
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
@@ -52,31 +52,31 @@ BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 /**
  * Array of functions and docstrings to export to Python
  */
-static PyMethodDef testPySortedArrayFuncs[] = {
-  {"getSortedArrayOfInts", getSortedArrayOfInts, METH_VARARGS, ""},
-  {"getSortedArrayOfLongs", getSortedArrayOfLongs, METH_VARARGS, ""},
+static PyMethodDef testPyCRSMatrixFuncs[] = {
+  {"getMatrixOfInt", getMatrixOfInts, METH_VARARGS, ""},
+  {"getMatrixOfDoubles", getMatrixOfDoubles, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}        /* Sentinel */
 };
 
 /**
  * Initialize the module object for Python with the exported functions
  */
-static struct PyModuleDef testPySortedArrayModule = {
+static struct PyModuleDef testPyCRSMatrixModule = {
   PyModuleDef_HEAD_INIT,
-  .m_name = "testPySortedArray",
+  .m_name = "testPyCRSMatrix",
   .m_doc = "",
   .m_size = -1,
-  .m_methods = testPySortedArrayFuncs,
+  .m_methods = testPyCRSMatrixFuncs,
 };
 
 END_ALLOW_DESIGNATED_INITIALIZERS
 
 PyMODINIT_FUNC
-PyInit_testPySortedArray(void)
+PyInit_testPyCRSMatrix(void)
 {
-  LvArray::python::PyObjectRef<> module = PyModule_Create( &testPySortedArrayModule );
+  LvArray::python::PyObjectRef<> module = PyModule_Create( &testPyCRSMatrixModule );
 
-  if ( !LvArray::python::addTypeToModule( module, LvArray::python::getPySortedArrayType(), "SortedArray" ) )
+  if ( !LvArray::python::addTypeToModule( module, LvArray::python::getPyCRSMatrixType(), "CRSMatrix" ) )
   { return nullptr; }
 
   return module.release();

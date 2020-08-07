@@ -43,76 +43,97 @@ namespace internal
 {
 
 /**
- *
+ * @class PyArrayWrapperBase
+ * @brief A virtual interface to an Array geared towards python usage.
  */
 class PyArrayWrapperBase
 {
 public:
 
   /**
-   *
+   * @brief Constructor.
+   * @param modifiable If the array can be modified.
+   * @details If @p modifiable is @c false then the array cannot be modified in any way.
    */
   PyArrayWrapperBase( bool const modifiable ):
     m_modifiable( modifiable )
   {}
 
   /**
-   *
+   * @brief Virtual destructor.
    */
   virtual ~PyArrayWrapperBase() = default;
 
   /**
-   *
+   * @brief Return @c true iff the array can be modified.
+   * @return @c true iff the array can be modified.
    */
   bool modifiable() const
   { return m_modifiable; }
 
   /**
-   *
+   * @brief Return a string representing the underlying Array type.
+   * @return A string representing the underlying Array type.
    */
   virtual std::string repr() const = 0;
 
   /**
-   *
-   */
-  virtual std::type_index indexType() const = 0;
-
-  /**
-   *
+   * @brief Return the number of dimensions in the array.
+   * @return The number of dimensions in the array.
+   * @note This wraps Array::ndim.
    */
   virtual int ndim() const = 0;
 
   /**
-   *
+   * @brief Return the single parameter resize index of the array.
+   * @return the single parameter resize index of the array.
+   * @note This wraps Array::getSingleParameterResizeIndex().
    */
   virtual int getSingleParameterResizeIndex() const = 0;
 
   /**
-   *
+   * @brief Set the single parameter resize index of the array.
+   * @param dim The dimension to make the single parameter resize index.
+   * @note This wraps Array::setSingleParameterResizeIndex( int ).
    */
   virtual void setSingleParameterResizeIndex( int const dim ) const = 0;
 
   /**
-   *
+   * @brief Resize the default dimension of the array.
+   * @param newSize The new size of the default dimension.
+   * @note This wraps Array::resize( INDEX_TYPE ).
    */
   virtual void resize( std::ptrdiff_t const newSize ) = 0;
 
   /**
-   *
+   * @brief Resize all the dimensions of the array.
+   * @param newSizes The new sizes of each dimension, must be of length @c ndim().
+   * @note Ths wraps Array::resize( int, INDEX_TYPE const * )
    */
   virtual void resize( std::ptrdiff_t const * const newSizes ) = 0;
 
   /**
-   *
+   * @brief Return a NumPy ndarray wrapping the array.
+   * @details This is a shallow copy and is modifiable if @c modifiable() is @c true.
    */
-  virtual PyObject * toNumPy() = 0;
+  virtual PyObject * toNumPy() const = 0;
 
 protected:
+
+  /// If the array can be modified.
   bool const m_modifiable;
 };
 
 /**
- *
+ * @class PyArrayWrapper
+ * @brief An implements the PyArrayWrapperBase interface for a particular Array type.
+ * @tparam T The type of values in the array.
+ * @tparam NDIM The dimensionality of the array.
+ * @tparam PERM The permutation of the array.
+ * @tparam INDEX_TYPE The index type of the array.
+ * @tparam BUFFER_TYPE The buffer type of the array.
+ * @note This holds a reference to the wrapped Array, you must ensure that the reference remains valid
+ *   for the lifetime of this object.
  */
 template< typename T,
           int NDIM,
@@ -124,57 +145,39 @@ class PyArrayWrapper : public PyArrayWrapperBase
 public:
 
   /**
-   *
+   * @brief Constructor.
+   * @param array The array to wrap.
+   * @param modify If the array is modifiable.
    */
   PyArrayWrapper( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & array, bool const modify ):
     PyArrayWrapperBase( modify ),
     m_array( array )
   {}
 
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual ~PyArrayWrapper() = default;
 
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual std::string repr() const final override
   { return system::demangleType< Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > >(); }
 
-  /**
-   *
-   */
-  virtual std::type_index indexType() const final override
-  { return std::type_index( typeid( INDEX_TYPE ) ); }
-
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual int ndim() const final override
   { return NDIM; }
 
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual int getSingleParameterResizeIndex() const final override
   { return m_array.getSingleParameterResizeIndex(); }
 
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual void setSingleParameterResizeIndex( int const dim ) const final override
   { m_array.setSingleParameterResizeIndex( dim ); }
 
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual void resize( std::ptrdiff_t const newSize ) final override
   { m_array.resize( integerConversion< INDEX_TYPE >( newSize ) ); }
 
-  /**
-   *
-   */
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual void resize( std::ptrdiff_t const * const newSizes ) final override
   {
     INDEX_TYPE dims[ NDIM ];
@@ -185,22 +188,26 @@ public:
     m_array.resize( NDIM, dims );
   }
 
-  /**
-   *
-   */
-  virtual PyObject * toNumPy() final override
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  virtual PyObject * toNumPy() const final override
   { return toNumPyImpl(); };
 
 private:
 
+  /**
+   * @brief Create a NumPy ndarray for an Array that doesn't contain std::strings.
+   */
   template< typename _T=T >
   std::enable_if_t< !std::is_same< _T, std::string >::value, PyObject * >
-  toNumPyImpl()
+  toNumPyImpl() const
   { return createNumPyArray( m_array.data(), m_modifiable, NDIM, m_array.dims(), m_array.strides() ); }
 
+  /**
+   * @brief Create a NumPy ndarray for an Array that contains std::strings.
+   */
   template< typename _T=T >
   std::enable_if_t< std::is_same< _T, std::string >::value, PyObject * >
-  toNumPyImpl()
+  toNumPyImpl() const
   {
     LVARRAY_ERROR( "Not yet implemented." );
     return nullptr;
@@ -210,14 +217,23 @@ private:
 };
 
 /**
- *
+ * @brief Create a Python object from a PyArrayWrapperBase.
+ * @param array The Array to export to Python.
  */
 PyObject * create( std::unique_ptr< internal::PyArrayWrapperBase > && array );
 
 } // namespace internal
 
 /**
- *
+ * @brief Create a Python object from an Array.
+ * @tparam T The type of values in the array.
+ * @tparam NDIM The dimensionality of the array.
+ * @tparam PERM The permutation of the array.
+ * @tparam INDEX_TYPE The index type of the array.
+ * @tparam BUFFER_TYPE The buffer type of the array.
+ * @param array The Array to export to Python.
+ * @param modify If the array is modifiable.
+ * @note @p array is moved to the CPU and touched if @p modify is @c true.
  */
 template< typename T,
           int NDIM,
@@ -227,11 +243,13 @@ template< typename T,
 PyObject * create( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & array, bool const modify )
 {
   array.move( MemorySpace::CPU, modify );
-  return internal::create( std::make_unique< internal::PyArrayWrapper< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > >( array, modify ) );
+
+  using WrapperType = internal::PyArrayWrapper< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE >;
+  return internal::create( std::make_unique< WrapperType >( array, modify ) );
 }
 
 /**
- *
+ * @brief Return the Python type for the Array.
  */
 PyTypeObject * getPyArrayType();
 
