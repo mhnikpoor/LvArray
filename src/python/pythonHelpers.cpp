@@ -47,7 +47,7 @@ bool isInstanceOf( PyObject * const obj, PyTypeObject * const type )
   if ( isInstanceOfType < 0 )
   { return false; }
 
-  PYTHON_ERROR_IF( !isInstanceOfType, PyExc_RuntimeError, "Expect an argument of type " << type->tp_name, false );
+  PYTHON_ERROR_IF( !isInstanceOfType, PyExc_TypeError, "Expect an argument of type " << type->tp_name, false );
 
   return true;
 }

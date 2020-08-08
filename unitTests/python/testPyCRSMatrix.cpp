@@ -39,7 +39,7 @@ static PyObject * getMatrixOfInts( PyObject * const self, PyObject * const args 
 static PyObject * getMatrixOfDoubles( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
-  
+
   int modify;
   if( !PyArg_ParseTuple( args, "p", &modify ) )
   { return nullptr; }
@@ -53,7 +53,7 @@ BEGIN_ALLOW_DESIGNATED_INITIALIZERS
  * Array of functions and docstrings to export to Python
  */
 static PyMethodDef testPyCRSMatrixFuncs[] = {
-  {"getMatrixOfInt", getMatrixOfInts, METH_VARARGS, ""},
+  {"getMatrixOfInts", getMatrixOfInts, METH_VARARGS, ""},
   {"getMatrixOfDoubles", getMatrixOfDoubles, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}        /* Sentinel */
 };

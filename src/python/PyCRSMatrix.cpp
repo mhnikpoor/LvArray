@@ -142,21 +142,21 @@ static PyObject * PyCRSMatrix_toSciPy( PyCRSMatrix * const self, PyObject * cons
   VERIFY_INITIALIZED( self );
 
   PYTHON_ERROR_IF( !self->matrix->isCompressed(), PyExc_RuntimeError,
-                   "Only compressed matrices can be exported to SciPy!", nullptr );
+                   "Uncompressed matrices can not be exported to SciPy", nullptr );
 
   PYTHON_ERROR_IF( self->matrix->numRows() == 0, PyExc_RuntimeError,
-                   "Empty matrices cannot be exported to SciPy!.", nullptr );
+                   "Empty matrices cannot be exported to SciPy", nullptr );
 
   std::array< PyObject *, 3 > const triple = self->matrix->getEntriesColumnsAndOffsets();
 
   PYTHON_ERROR_IF( triple[ 0 ] == nullptr, PyExc_RuntimeError,
-                   "Error constructing the entries NumPy array.", nullptr );
+                   "Error constructing the entries NumPy array", nullptr );
 
   PYTHON_ERROR_IF( triple[ 1 ] == nullptr, PyExc_RuntimeError,
-                   "Error constructing the columns NumPy array.", nullptr );
+                   "Error constructing the columns NumPy array", nullptr );
 
   PYTHON_ERROR_IF( triple[ 2 ] == nullptr, PyExc_RuntimeError,
-                   "Error constructing the offsets NumPy array.", nullptr );
+                   "Error constructing the offsets NumPy array", nullptr );
 
   PyObjectRef<> sciPySparse = PyImport_ImportModule( "scipy.sparse" );
   PyObjectRef<> constructor = PyObject_GetAttrString( sciPySparse, "csr_matrix" );
@@ -221,7 +221,7 @@ static PyObject * PyCRSMatrix_insertNonZeros( PyCRSMatrix * const self, PyObject
     parseNumPyArray( cols, self->matrix->columnType() );
 
   std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > entriesInfo =
-    parseNumPyArray( cols, self->matrix->entryType() );
+    parseNumPyArray( entries, self->matrix->entryType() );
 
   if ( std::get< 0 >( colsInfo ) == nullptr ||  std::get< 0 >( entriesInfo ) == nullptr )
   { return nullptr; }

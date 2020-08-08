@@ -129,7 +129,7 @@ public:
    */
   PyObjectRef( PyObjectRef const & src )
   { *this = src; }
-  
+
   /**
    * @brief Steal a reference from @p src.
    * @param The object to steal a reference to.
@@ -213,7 +213,7 @@ public:
    * @details Useful for functions which return a PyObject *.
    */
   T * release()
-  { 
+  {
     T * const ret = m_object;
     m_object = nullptr;
     return ret;
