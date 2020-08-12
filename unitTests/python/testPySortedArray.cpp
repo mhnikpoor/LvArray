@@ -28,7 +28,7 @@ static LvArray::SortedArray< long, std::ptrdiff_t, LvArray::MallocBuffer > sorte
 static PyObject * getSortedArrayOfInts( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
-  
+
   int modify;
   if( !PyArg_ParseTuple( args, "p", &modify ) )
   { return nullptr; }
@@ -39,7 +39,7 @@ static PyObject * getSortedArrayOfInts( PyObject * const self, PyObject * const 
 static PyObject * getSortedArrayOfLongs( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
-  
+
   int modify;
   if( !PyArg_ParseTuple( args, "p", &modify ) )
   { return nullptr; }
@@ -53,8 +53,8 @@ BEGIN_ALLOW_DESIGNATED_INITIALIZERS
  * Array of functions and docstrings to export to Python
  */
 static PyMethodDef testPySortedArrayFuncs[] = {
-  {"getSortedArrayOfInts", getSortedArrayOfInts, METH_VARARGS, ""},
-  {"getSortedArrayOfLongs", getSortedArrayOfLongs, METH_VARARGS, ""},
+  {"get_sorted_array_int", getSortedArrayOfInts, METH_VARARGS, ""},
+  {"get_sorted_array_long", getSortedArrayOfLongs, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}        /* Sentinel */
 };
 

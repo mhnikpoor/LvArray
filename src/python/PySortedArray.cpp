@@ -135,7 +135,7 @@ BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 static PyMethodDef PySortedArray_methods[] = {
   { "insert", (PyCFunction) PySortedArray_insert, METH_VARARGS, PySortedArray_insertDocString },
   { "remove", (PyCFunction) PySortedArray_remove, METH_VARARGS, PySortedArray_removeDocString },
-  { "toNumPy", (PyCFunction) PySortedArray_toNumPy, METH_VARARGS, PySortedArray_toNumPyDocString },
+  { "to_numpy", (PyCFunction) PySortedArray_toNumPy, METH_VARARGS, PySortedArray_toNumPyDocString },
   { nullptr, nullptr, 0, nullptr } // Sentinel
 };
 

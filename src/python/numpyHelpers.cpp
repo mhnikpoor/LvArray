@@ -54,7 +54,7 @@ PyObject * createNumpyArrayImpl( void * const data,
   { return nullptr; }
 
   std::pair< int, std::size_t > const typeInfo = getNumPyType( type );
-  
+
   PYTHON_ERROR_IF( typeInfo.first == NPY_NOTYPE, PyExc_TypeError,
                    "No NumPy type for " << system::demangle( type.name() ), nullptr );
 
@@ -125,7 +125,7 @@ parseNumPyArray( PyObject * const obj, std::type_index const expectedType )
     return ReturnType{ reinterpret_cast< PyObject * >( array.release() ), vals, nVals };
   }
 
-  PYTHON_ERROR_IF( !PyArray_CanCastSafely( srcNumPyType, expectedNumPyType ), PyExc_RuntimeError,
+  PYTHON_ERROR_IF( !PyArray_CanCastSafely( srcNumPyType, expectedNumPyType ), PyExc_TypeError,
                    "Cannot safely convert " << getNumPyTypeName( srcNumPyType ) <<
                    " to " << getNumPyTypeName( expectedNumPyType ), ErrorReturn );
 
