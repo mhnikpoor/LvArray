@@ -4,6 +4,7 @@ set( pythonTests
      testPyCRSMatrix.cpp
      testPythonScalars.cpp
      testPythonListOfStrings.cpp
+     testPyCallback.cpp
     )
 
 foreach(test ${pythonTests})
