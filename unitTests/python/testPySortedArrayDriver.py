@@ -10,7 +10,6 @@ from testPySortedArray import get_sorted_array_int, get_sorted_array_long
 
 def clear(arr):
     """Test the insert method."""
-    dtype = arr.to_numpy().dtype.type
     while len(arr.to_numpy()) > 0:
         arr.remove(arr.to_numpy()[0])
 

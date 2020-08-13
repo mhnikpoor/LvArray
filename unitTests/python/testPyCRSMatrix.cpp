@@ -53,8 +53,8 @@ BEGIN_ALLOW_DESIGNATED_INITIALIZERS
  * Array of functions and docstrings to export to Python
  */
 static PyMethodDef testPyCRSMatrixFuncs[] = {
-  {"getMatrixOfInts", getMatrixOfInts, METH_VARARGS, ""},
-  {"getMatrixOfDoubles", getMatrixOfDoubles, METH_VARARGS, ""},
+  {"get_matrix_int", getMatrixOfInts, METH_VARARGS, ""},
+  {"get_matrix_double", getMatrixOfDoubles, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}        /* Sentinel */
 };
 

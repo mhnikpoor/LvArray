@@ -2,8 +2,6 @@ import unittest
 
 import testPyCallback
 
-import faulthandler; faulthandler.enable()
-
 class CustomException(Exception):
     pass
 

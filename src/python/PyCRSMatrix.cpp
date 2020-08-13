@@ -267,18 +267,54 @@ static PyObject * PyCRSMatrix_removeNonZeros( PyCRSMatrix * const self, PyObject
                                                             std::get< 2 >( colsInfo ) ) );
 }
 
+static constexpr char const * PyCRSMatrix_addToRowDocString =
+"";
+static PyObject * PyCRSMatrix_addToRow( PyCRSMatrix * const self, PyObject * const args )
+{
+  VERIFY_NON_NULL_SELF( self );
+  VERIFY_INITIALIZED( self );
+  VERIFY_MODIFIABLE( self );
+
+  long row;
+  PyObject * cols, * vals;
+  if ( !PyArg_ParseTuple( args, "lOO", &row, &cols, &vals ) )
+  { return nullptr; }
+
+  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > colsInfo =
+    parseNumPyArray( cols, self->matrix->columnType() );
+
+  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > valsInfo =
+    parseNumPyArray( vals, self->matrix->entryType() );
+
+  if ( std::get< 0 >( colsInfo ) == nullptr ||  std::get< 0 >( valsInfo ) == nullptr )
+  { return nullptr; }
+
+  std::ptrdiff_t const numRows = self->matrix->numRows();
+  PYTHON_ERROR_IF( row < 0 || row >= numRows, PyExc_RuntimeError,
+                   "Row " << row << " is out of bounds for a matrix with " << numRows << " rows.", nullptr );
+
+  self->matrix->addToRow( row,
+                          std::get< 1 >( colsInfo ),
+                          std::get< 1 >( valsInfo ),
+                          std::get< 2 >( valsInfo ) );
+
+  Py_RETURN_NONE;
+}
+
+
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
 static PyMethodDef PyCRSMatrix_methods[] = {
-  { "numRows", (PyCFunction) PyCRSMatrix_numRows, METH_NOARGS, PyCRSMatrix_numRowsDocString },
-  { "numColumns", (PyCFunction) PyCRSMatrix_numColumns, METH_NOARGS, PyCRSMatrix_numColumnsDocString },
-  { "getColumns", (PyCFunction) PyCRSMatrix_getColumns, METH_VARARGS, PyCRSMatrix_getColumnsDocString },
-  { "getEntries", (PyCFunction) PyCRSMatrix_getEntries, METH_VARARGS, PyCRSMatrix_getEntriesDocString },
-  { "toSciPy", (PyCFunction) PyCRSMatrix_toSciPy, METH_NOARGS, PyCRSMatrix_toSciPyDocString },
+  { "num_rows", (PyCFunction) PyCRSMatrix_numRows, METH_NOARGS, PyCRSMatrix_numRowsDocString },
+  { "num_columns", (PyCFunction) PyCRSMatrix_numColumns, METH_NOARGS, PyCRSMatrix_numColumnsDocString },
+  { "get_columns", (PyCFunction) PyCRSMatrix_getColumns, METH_VARARGS, PyCRSMatrix_getColumnsDocString },
+  { "get_entries", (PyCFunction) PyCRSMatrix_getEntries, METH_VARARGS, PyCRSMatrix_getEntriesDocString },
+  { "to_scipy", (PyCFunction) PyCRSMatrix_toSciPy, METH_NOARGS, PyCRSMatrix_toSciPyDocString },
   { "resize", (PyCFunction) PyCRSMatrix_resize, METH_VARARGS, PyCRSMatrix_resizeDocString },
   { "compress", (PyCFunction) PyCRSMatrix_compress, METH_NOARGS, PyCRSMatrix_compressDocString },
-  { "insertNonZeros", (PyCFunction) PyCRSMatrix_insertNonZeros, METH_VARARGS, PyCRSMatrix_insertNonZerosDocString },
-  { "removeNonZeros", (PyCFunction) PyCRSMatrix_removeNonZeros, METH_VARARGS, PyCRSMatrix_removeNonZerosDocString },
+  { "insert_nonzeros", (PyCFunction) PyCRSMatrix_insertNonZeros, METH_VARARGS, PyCRSMatrix_insertNonZerosDocString },
+  { "remove_nonzeros", (PyCFunction) PyCRSMatrix_removeNonZeros, METH_VARARGS, PyCRSMatrix_removeNonZerosDocString },
+  { "add_to_row", (PyCFunction) PyCRSMatrix_addToRow, METH_VARARGS, PyCRSMatrix_addToRowDocString },
   { nullptr, nullptr, 0, nullptr } // Sentinel
 };
 
