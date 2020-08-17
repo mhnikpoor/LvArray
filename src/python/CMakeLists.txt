@@ -8,6 +8,7 @@ set( pylvarray_headers
      PySortedArray.hpp
      PyCRSMatrix.hpp
      PyFunc.hpp
+     PyArrayOfArrays.hpp
     )
 
 set( pylvarray_sources
@@ -18,6 +19,7 @@ set( pylvarray_sources
      PySortedArray.cpp
      PyCRSMatrix.cpp
      PyFunc.cpp
+     PyArrayOfArrays.cpp
     )
 
 message("adding pylvarray library")
