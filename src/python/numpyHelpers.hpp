@@ -40,6 +40,11 @@ namespace python
 namespace internal
 {
 
+template< typename T >
+constexpr bool canExportToNumpy = std::is_arithmetic< T >::value;
+
+std::nullptr_t exportError( std::string const & typeName );
+
 /**
  *
  */
@@ -58,7 +63,7 @@ bool import_array_wrapper();
  *
  */
 template< typename T, typename INDEX_TYPE >
-std::enable_if_t< std::is_arithmetic< T >::value, PyObject * >
+std::enable_if_t< internal::canExportToNumpy< T >, PyObject * >
 createNumPyArray( T * const data,
                   bool const modify,
                   int const ndim,
@@ -82,11 +87,27 @@ createNumPyArray( T * const data,
                                          strides.data() );
 }
 
+template< typename T, typename INDEX_TYPE >
+std::enable_if_t< !internal::canExportToNumpy< T >, PyObject * >
+createNumPyArray( T * const data,
+                  bool const modify,
+                  int const ndim,
+                  INDEX_TYPE const * const dimsPtr,
+                  INDEX_TYPE const * const stridesPtr )
+{
+  LVARRAY_UNUSED_VARIABLE( data );
+  LVARRAY_UNUSED_VARIABLE( modify );
+  LVARRAY_UNUSED_VARIABLE( ndim );
+  LVARRAY_UNUSED_VARIABLE( dimsPtr );
+  LVARRAY_UNUSED_VARIABLE( stridesPtr );
+  return internal::exportError( system::demangleType< T >() );
+}
+
 /**
  *
  */
 template< typename T >
-std::enable_if_t< std::is_arithmetic< T >::value, PyObject * >
+std::enable_if_t< internal::canExportToNumpy< T >, PyObject * >
 create( T & value, bool const modify )
 {
   std::ptrdiff_t dims = 1;

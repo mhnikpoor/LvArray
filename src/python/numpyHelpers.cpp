@@ -43,6 +43,10 @@ namespace internal
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::nullptr_t exportError( std::string const & typeName )
+{ PYTHON_ERROR_IF( true, PyExc_RuntimeError, "Cannot export " << typeName << " to numpy.", nullptr ); }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 PyObject * createNumpyArrayImpl( void * const data,
                                  std::type_index const type,
                                  bool const dataIsConst,

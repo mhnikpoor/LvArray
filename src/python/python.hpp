@@ -26,6 +26,7 @@
 // source includes
 #include "PyArray.hpp"
 #include "PySortedArray.hpp"
+#include "PyArrayOfArrays.hpp"
 #include "PyCRSMatrix.hpp"
 #include "../typeManipulation.hpp"
 
@@ -35,6 +36,8 @@ namespace python
 {
 
 IS_VALID_EXPRESSION( CanCreate, T, create( std::declval< T & >(), true ) );
+
+PyObjectRef<> getModule();
 
 } // namespace python
 } // namespace LvArray

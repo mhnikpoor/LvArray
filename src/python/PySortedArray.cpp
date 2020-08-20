@@ -141,7 +141,7 @@ static PyMethodDef PySortedArray_methods[] = {
 
 static PyTypeObject PySortedArrayType = {
   PyVarObject_HEAD_INIT( nullptr, 0 )
-  .tp_name = "SortedArray",
+  .tp_name = "LvArray.SortedArray",
   .tp_basicsize = sizeof( PySortedArray ),
   .tp_itemsize = 0,
   .tp_dealloc = (destructor) PySortedArray_dealloc,

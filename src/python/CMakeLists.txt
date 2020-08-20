@@ -3,7 +3,6 @@ set( pylvarray_headers
      pythonForwardDeclarations.hpp
      pythonHelpers.hpp
      numpyHelpers.hpp
-     numpyArrayView.hpp
      PyArray.hpp
      PySortedArray.hpp
      PyCRSMatrix.hpp
@@ -12,9 +11,9 @@ set( pylvarray_headers
     )
 
 set( pylvarray_sources
+     python.cpp
      pythonHelpers.cpp
      numpyHelpers.cpp
-     numpyArrayView.cpp
      PyArray.cpp
      PySortedArray.cpp
      PyCRSMatrix.cpp

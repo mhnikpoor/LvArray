@@ -26,6 +26,10 @@
 #include "pythonForwardDeclarations.hpp"
 #include "../system.hpp"
 #include "../Macros.hpp"
+#include "../limits.hpp"
+
+// system includes
+#include <vector>
 
 #if defined(PyObject_HEAD)
   #define PYTHON_ERROR_IF( CONDITION, TYPE, MSG, RET ) \
@@ -249,6 +253,20 @@ T * convert( PyObject * const obj, PyTypeObject * const type )
 bool addTypeToModule( PyObject * const module,
                       PyTypeObject * const type,
                       char const * const typeName );
+
+PyObject * createPyListOfStrings( std::string const * const strptr, std::ptrdiff_t const size );
+
+/**
+ * @brief create and return a Python list of strings from a std::vector of std::strings.
+ *   the Python strings will be copies.
+ * @param vec the vector to convert.
+ * @param modify has no effect
+ */
+inline PyObject * create( std::vector< std::string > const & vec, bool const modify )
+{
+  LVARRAY_UNUSED_VARIABLE( modify );
+  return createPyListOfStrings( vec.data(), integerConversion< std::ptrdiff_t >( vec.size() ) );
+}
 
 } // namespace python
 } // namespace LvArray

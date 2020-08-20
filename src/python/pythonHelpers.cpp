@@ -22,6 +22,7 @@
 
 // Source includes
 #include "pythonHelpers.hpp"
+#include "../limits.hpp"
 
 namespace LvArray
 {
@@ -70,6 +71,19 @@ bool addTypeToModule( PyObject * const module,
   }
 
   return true;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+PyObject * createPyListOfStrings( std::string const * const strptr, std::ptrdiff_t const size )
+{
+  PyObject * pylist = PyList_New( size );
+  for ( std::ptrdiff_t i = 0; i < size; ++i )
+  {
+    PyObject * pystr = PyUnicode_FromString( strptr[ i ].c_str() );
+    PyList_SET_ITEM( pylist, integerConversion< Py_ssize_t >( i ), pystr );
+  }
+  return pylist;
 }
 
 } // namespace python

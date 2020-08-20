@@ -208,10 +208,7 @@ private:
   template< typename _T=T >
   std::enable_if_t< std::is_same< _T, std::string >::value, PyObject * >
   toNumPyImpl() const
-  {
-    LVARRAY_ERROR( "Not yet implemented." );
-    return nullptr;
-  }
+  { return createPyListOfStrings( m_array.data(), integerConversion< std::ptrdiff_t >( m_array.size() ) ); }
 
   Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & m_array;
 };

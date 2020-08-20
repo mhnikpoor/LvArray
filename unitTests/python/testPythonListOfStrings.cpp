@@ -1,3 +1,5 @@
+#if 0
+
 #define PY_SSIZE_T_CLEAN
 #define ARR_SIZE 10
 
@@ -113,3 +115,5 @@ PyInit_testPythonListOfStrings(void)
     PyModule_AddIntMacro( module, ARR_SIZE );
     return module;
 }
+
+#endif
