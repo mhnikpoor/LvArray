@@ -78,11 +78,11 @@ static Py_ssize_t PyArrayOfArrays_len( PyArrayOfArrays * const self )
   return integerConversion< Py_ssize_t >( self->arrayOfArrays->size() );
 }
 
-static PyObject * PyArrayOfArrays_getitem( PyArrayOfArrays * const self, PyObject * key )
+static PyObject * PyArrayOfArrays_getitem( PyArrayOfArrays * const self, Py_ssize_t pyindex )
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
-  long long index = PyLong_AsLongLong( key );
+  long long index = integerConversion< long long >( pyindex );
   if ( PyErr_Occurred() != nullptr )
   { return nullptr; }
   if ( index < 0 || index >= self->arrayOfArrays->size() ){
@@ -92,16 +92,104 @@ static PyObject * PyArrayOfArrays_getitem( PyArrayOfArrays * const self, PyObjec
   return self->arrayOfArrays->operator[]( index );
 }
 
+static int PyArrayOfArrays_delitem( PyArrayOfArrays * const self, Py_ssize_t pyindex, PyObject * val ){
+  if ( val != nullptr ){
+    PyErr_SetString(PyExc_TypeError, "ArrayOfArrays object does not support item assignment");
+    return -1;
+  }
+  long long index = integerConversion< long long >( pyindex );
+  if ( PyErr_Occurred() != nullptr )
+  { return -1; }
+  if ( index < 0 || index >= self->arrayOfArrays->size() ){
+    PyErr_SetString(PyExc_IndexError, "Index out of bounds");
+    return -1;
+  }
+  self->arrayOfArrays->eraseArray( index );
+  return 0;
+}
+
+static PyObject * PyArrayOfArrays_sq_concat( PyArrayOfArrays * self, PyObject * args ){
+  LVARRAY_UNUSED_VARIABLE( self );
+  LVARRAY_UNUSED_VARIABLE( args );
+  Py_RETURN_NOTIMPLEMENTED;
+}
+
+static PyObject * PyArrayOfArrays_sq_repeat( PyArrayOfArrays * self, Py_ssize_t args ){
+  LVARRAY_UNUSED_VARIABLE( self );
+  LVARRAY_UNUSED_VARIABLE( args );
+  Py_RETURN_NOTIMPLEMENTED;
+}
+
+static constexpr char const * PyArrayOfArrays_insertIntoDocString =
+"";
+static PyObject * PyArrayOfArrays_insertIntoArray( PyArrayOfArrays * self, PyObject * args ){
+  long long array, index;
+  PyObject * arr;
+  if( !PyArg_ParseTuple( args, "LLO", &array, &index, &arr ) )
+  { return nullptr; }
+  if ( array < 0 || array >= self->arrayOfArrays->size() || index < 0
+       || index > self->arrayOfArrays->sizeOfArray( array )){
+    PyErr_SetString(PyExc_IndexError, "index out of bounds");
+    return nullptr;
+  }
+  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > ret =
+    parseNumPyArray( arr, self->arrayOfArrays->valueType() );
+  if ( std::get< 0 >( ret ) == nullptr )
+  { return nullptr; }
+  self->arrayOfArrays->insertIntoArray( array, index, std::get< 1 >( ret ), std::get< 2 >( ret ) );
+  Py_RETURN_NONE;
+}
+
+static constexpr char const * PyArrayOfArrays_insertDocString =
+"";
+static PyObject * PyArrayOfArrays_insert( PyArrayOfArrays * self, PyObject * args ){
+  long long index;
+  PyObject * arr;
+  if( !PyArg_ParseTuple( args, "LO", &index, &arr ) )
+  { return nullptr; }
+  if ( index < 0 || index > self->arrayOfArrays->size() ){
+    PyErr_SetString(PyExc_IndexError, "Index out of bounds");
+    return nullptr;
+  }
+  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > ret =
+    parseNumPyArray( arr, self->arrayOfArrays->valueType() );
+  if ( std::get< 0 >( ret ) == nullptr )
+  { return nullptr; }
+  self->arrayOfArrays->insertArray( index, std::get< 1 >( ret ), std::get< 2 >( ret ) );
+  Py_RETURN_NONE;
+}
+
+static constexpr char const * PyArrayOfArrays_eraseFromDocString =
+"";
+static PyObject * PyArrayOfArrays_eraseFrom( PyArrayOfArrays * self, PyObject * args ){
+  long long index, begin;
+  if( !PyArg_ParseTuple( args, "LL", &index, &begin ) )
+  { return nullptr; }
+  if ( index < 0 || index >= self->arrayOfArrays->size() || begin < 0
+       || begin >= self->arrayOfArrays->sizeOfArray( index ) ){
+    PyErr_SetString(PyExc_IndexError, "index out of bounds");
+    return nullptr;
+  }
+  self->arrayOfArrays->eraseFromArray( index, begin );
+  Py_RETURN_NONE;
+}
+
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
 static PyMethodDef PyArrayOfArrays_methods[] = {
+  { "insert", (PyCFunction) PyArrayOfArrays_insert, METH_VARARGS, PyArrayOfArrays_insertDocString },
+  { "insert_into", (PyCFunction) PyArrayOfArrays_insertIntoArray, METH_VARARGS, PyArrayOfArrays_insertIntoDocString },
+  { "erase_from", (PyCFunction) PyArrayOfArrays_eraseFrom, METH_VARARGS, PyArrayOfArrays_eraseFromDocString },
   { nullptr, nullptr, 0, nullptr } // Sentinel
 };
 
-static PyMappingMethods PyArrayOfArraysMappingMethods = {
-  .mp_length = (lenfunc) PyArrayOfArrays_len,
-  .mp_subscript = (binaryfunc) PyArrayOfArrays_getitem,
+static PySequenceMethods PyArrayOfArraysSequenceMethods = {
+  .sq_length = (lenfunc) PyArrayOfArrays_len,
+  .sq_concat = (binaryfunc) PyArrayOfArrays_sq_concat,
+  .sq_repeat = (ssizeargfunc) PyArrayOfArrays_sq_repeat,
+  .sq_item = (ssizeargfunc) PyArrayOfArrays_getitem,
+  .sq_ass_item = (ssizeobjargproc) PyArrayOfArrays_delitem,
 };
 
 static PyTypeObject PyArrayOfArraysType = {
@@ -111,7 +199,7 @@ static PyTypeObject PyArrayOfArraysType = {
   .tp_itemsize = 0,
   .tp_dealloc = (destructor) PyArrayOfArrays_dealloc,
   .tp_repr = PyArrayOfArrays_repr,
-  .tp_as_mapping = &PyArrayOfArraysMappingMethods,
+  .tp_as_sequence = &PyArrayOfArraysSequenceMethods,
   .tp_flags = Py_TPFLAGS_DEFAULT,
   .tp_doc = PyArrayOfArrays::docString,
   .tp_methods = PyArrayOfArrays_methods,

@@ -80,8 +80,37 @@ public:
   /**
    *
    */
+  virtual long long sizeOfArray( long long index ) const = 0;
+
+  /**
+   *
+   */
   virtual PyObject * operator[]( long long index ) = 0;
 
+  /**
+   *
+   */
+  virtual std::type_index valueType() const = 0;
+
+  /**
+   *
+   */
+  virtual void eraseArray( long long index ) = 0;
+
+  /**
+   *
+   */
+  virtual void eraseFromArray( long long index, long long begin ) = 0;
+
+  /**
+   *
+   */
+  virtual void insertArray( long long index, void const * data, std::ptrdiff_t numvals ) = 0;
+
+  /**
+   *
+   */
+  virtual void insertIntoArray( long long array, long long index, void const * data, std::ptrdiff_t numvals ) = 0;
 
 protected:
   bool const m_modifiable;
@@ -117,17 +146,23 @@ public:
    */
   virtual long long size() const final override
   {
-    INDEX_TYPE numArrays = m_arrayOfArrays.size();
-
-    long long foobar = integerConversion< long long >( numArrays );
-    printf("%ld %lld", numArrays, foobar);
-    return integerConversion< long long >( numArrays );
+    return integerConversion< long long >( m_arrayOfArrays.size() );
   }
 
   /**
    *
    */
-  virtual PyObject * operator[]( long long index ) override{
+  virtual long long sizeOfArray( long long index ) const final override
+  {
+    INDEX_TYPE convertedIndex = integerConversion< INDEX_TYPE >( index );
+    return integerConversion< long long >( m_arrayOfArrays.sizeOfArray( convertedIndex ) );
+  }
+
+  /**
+   *
+   */
+  virtual PyObject * operator[]( long long index ) override
+  {
     INDEX_TYPE convertedIndex = integerConversion< INDEX_TYPE >( index );
     ArraySlice< T, 1, 0, INDEX_TYPE > slice = m_arrayOfArrays[ convertedIndex ];
     T* data = slice;
@@ -135,6 +170,52 @@ public:
     INDEX_TYPE size = slice.size();
     return createNumPyArray( data, m_modifiable, 1, &size, &strides );
   }
+
+  /**
+   *
+   */
+  virtual void eraseArray( long long index ) override
+  {
+    INDEX_TYPE convertedIndex = integerConversion< INDEX_TYPE >( index );
+    m_arrayOfArrays.eraseArray( convertedIndex );
+  }
+
+  /**
+   *
+   */
+  virtual void eraseFromArray( long long index, long long begin ) override
+  {
+    INDEX_TYPE convertedIndex = integerConversion< INDEX_TYPE >( index );
+    INDEX_TYPE convertedBegin = integerConversion< INDEX_TYPE >( begin );
+    m_arrayOfArrays.eraseFromArray( convertedIndex, convertedBegin );
+  }
+
+  /**
+   *
+   */
+  virtual void insertArray( long long index, void const * data, std::ptrdiff_t numvals ) override
+  {
+    INDEX_TYPE convertedIndex = integerConversion< INDEX_TYPE >( index );
+    T const * begin = static_cast< T const * >( data );
+    T const * end = begin + numvals;
+    m_arrayOfArrays.insertArray( convertedIndex, begin, end );
+  }
+
+  /**
+   *
+   */
+  virtual void insertIntoArray( long long array, long long index, void const * data, std::ptrdiff_t numvals ) override
+  {
+    INDEX_TYPE convertedArray = integerConversion< INDEX_TYPE >( array );
+    INDEX_TYPE convertedIndex = integerConversion< INDEX_TYPE >( index );
+    T const * begin = static_cast< T const * >( data );
+    T const * end = begin + numvals;
+    m_arrayOfArrays.insertIntoArray( convertedArray, convertedIndex, begin, end );
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  virtual std::type_index valueType() const override
+  { return std::type_index( typeid( T ) ); }
 
 private:
   ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > & m_arrayOfArrays;
