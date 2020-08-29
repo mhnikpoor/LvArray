@@ -22,17 +22,17 @@
 #include "python/PyArray.hpp"
 #include "MallocBuffer.hpp"
 
-static LvArray::Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, LvArray::MallocBuffer > array1DOfInts;
-static LvArray::Array< double, 1, RAJA::PERM_I, int, LvArray::MallocBuffer > array1DOfDoubles;
-static LvArray::Array< long, 2, RAJA::PERM_IJ, std::ptrdiff_t, LvArray::MallocBuffer > array2DIJOfLongs;
-static LvArray::Array< float, 2, RAJA::PERM_JI, long long int, LvArray::MallocBuffer > array2DJIOfFloats;
-static LvArray::Array< double, 4, RAJA::PERM_KILJ, std::ptrdiff_t, LvArray::MallocBuffer > array4DKILJOfDoubles;
+static LvArray::Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, LvArray::MallocBuffer > array1DOfInts{10};
+static LvArray::Array< double, 1, RAJA::PERM_I, int, LvArray::MallocBuffer > array1DOfDoubles{10};
+static LvArray::Array< long, 2, RAJA::PERM_IJ, std::ptrdiff_t, LvArray::MallocBuffer > array2DIJOfLongs{10, 10};
+static LvArray::Array< float, 2, RAJA::PERM_JI, long long int, LvArray::MallocBuffer > array2DJIOfFloats{10, 10};
+static LvArray::Array< double, 4, RAJA::PERM_KILJ, std::ptrdiff_t, LvArray::MallocBuffer > array4DKILJOfDoubles{10, 10, 10, 10};
 
 
 static PyObject * getArray1DOfInts( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
-  
+
   int modify;
   if( !PyArg_ParseTuple( args, "p", &modify ) )
   { return nullptr; }
@@ -43,7 +43,7 @@ static PyObject * getArray1DOfInts( PyObject * const self, PyObject * const args
 static PyObject * getArray1DOfDoubles( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
-  
+
   int modify;
   if( !PyArg_ParseTuple( args, "p", &modify ) )
   { return nullptr; }
@@ -54,7 +54,7 @@ static PyObject * getArray1DOfDoubles( PyObject * const self, PyObject * const a
 static PyObject * getArray2DIJOfLongs( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
-  
+
   int modify;
   if( !PyArg_ParseTuple( args, "p", &modify ) )
   { return nullptr; }
@@ -65,7 +65,7 @@ static PyObject * getArray2DIJOfLongs( PyObject * const self, PyObject * const a
 static PyObject * getArray2DJIOfFloats( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
-  
+
   int modify;
   if( !PyArg_ParseTuple( args, "p", &modify ) )
   { return nullptr; }
@@ -76,7 +76,7 @@ static PyObject * getArray2DJIOfFloats( PyObject * const self, PyObject * const 
 static PyObject * getArray4DKILJOfDoubles( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
-  
+
   int modify;
   if( !PyArg_ParseTuple( args, "p", &modify ) )
   { return nullptr; }
@@ -90,11 +90,11 @@ BEGIN_ALLOW_DESIGNATED_INITIALIZERS
  * Array of functions and docstrings to export to Python
  */
 static PyMethodDef testPyArrayFuncs[] = {
-  {"getArray1DOfInts", getArray1DOfInts, METH_VARARGS, ""},
-  {"getArray1DOfDoubles", getArray1DOfDoubles, METH_VARARGS, ""},
-  {"getArray2DIJOfLongs", getArray2DIJOfLongs, METH_VARARGS, ""},
-  {"getArray2DJIOfFloats", getArray2DJIOfFloats, METH_VARARGS, ""},
-  {"getArray4DKILJOfDoubles", getArray4DKILJOfDoubles, METH_VARARGS, ""},
+  {"get_array1d_int", getArray1DOfInts, METH_VARARGS, ""},
+  {"get_array1d_double", getArray1DOfDoubles, METH_VARARGS, ""},
+  {"get_array2d_ij_long", getArray2DIJOfLongs, METH_VARARGS, ""},
+  {"get_array2d_ji_float", getArray2DJIOfFloats, METH_VARARGS, ""},
+  {"get_array4d_kilj_double", getArray4DKILJOfDoubles, METH_VARARGS, ""},
   {nullptr, nullptr, 0, nullptr}        /* Sentinel */
 };
 

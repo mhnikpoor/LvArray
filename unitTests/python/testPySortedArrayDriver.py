@@ -63,6 +63,8 @@ class SortedArrayTests(unittest.TestCase):
             arr = getter(True)
             with self.assertRaisesRegex(TypeError, "Cannot safely convert"):
                 arr.insert(5.6)
+            with self.assertRaisesRegex(TypeError, "Cannot safely convert"):
+                arr.insert("foobar")
 
 
 if __name__ == '__main__':

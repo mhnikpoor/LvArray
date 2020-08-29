@@ -82,7 +82,7 @@ static PyObject * PyArray_repr( PyObject * const obj )
 }
 
 static constexpr char const * PyArray_getSingleParameterResizeIndexDocString =
-"getSingleParameterResizeIndex()\n"
+"get_single_parameter_resize_index()\n"
 "--\n\n"
 "Return the default resize dimension.\n"
 "\n"
@@ -100,7 +100,7 @@ static PyObject * PyArray_getSingleParameterResizeIndex( PyArray * const self, P
 }
 
 static constexpr char const * PyArray_setSingleParameterResizeIndexDocString =
-"setSingleParameterResizeIndex(dim)\n"
+"set_single_parameter_resize_index(dim)\n"
 "--\n\n"
 "Set the default resize dimension.\n"
 "\n"
@@ -116,8 +116,8 @@ static PyObject * PyArray_setSingleParameterResizeIndex( PyArray * const self, P
   if ( !PyArg_ParseTuple( args, "i", &dim ) )
   { return nullptr; }
 
-  PYTHON_ERROR_IF( dim < 0 || dim >= self->array->ndim(), PyExc_RuntimeError,
-                   "Invalid argument to setSingleParameterResizeIndex.", nullptr );
+  PYTHON_ERROR_IF( dim < 0 || dim >= self->array->ndim(), PyExc_ValueError,
+                   "argument out of bounds", nullptr );
 
   self->array->setSingleParameterResizeIndex( dim );
 
@@ -125,7 +125,7 @@ static PyObject * PyArray_setSingleParameterResizeIndex( PyArray * const self, P
 }
 
 static constexpr char const * PyArray_resizeDocString =
-"resize(newDim)\n"
+"resize(new_dim)\n"
 "--\n\n"
 "Resize the default dimension.\n"
 "\n"
@@ -142,7 +142,7 @@ static PyObject * PyArray_resize( PyArray * const self, PyObject * const args )
   if ( !PyArg_ParseTuple( args, "l", &newSize ) )
   { return nullptr; }
 
-  PYTHON_ERROR_IF( newSize < 0, PyExc_RuntimeError, "Size must be positive.", nullptr );
+  PYTHON_ERROR_IF( newSize < 0, PyExc_ValueError, "Size must be positive.", nullptr );
 
   self->array->resize( integerConversion< std::ptrdiff_t >( newSize ) );
 
@@ -150,7 +150,7 @@ static PyObject * PyArray_resize( PyArray * const self, PyObject * const args )
 }
 
 static constexpr char const * PyArray_resizeAllDocString =
-"resizeAll(newDims)\n"
+"resize_all(new_dims)\n"
 "--\n\n"
 "Resize all the dimensions.\n"
 "\n"
@@ -183,7 +183,7 @@ static PyObject * PyArray_resizeAll( PyArray * const self, PyObject * const args
 }
 
 static constexpr char const * PyArray_toNumPyDocString =
-"toNumPy()\n"
+"to_numpy()\n"
 "--\n\n"
 "Return a NumPy ndarray representing a shallow copy of the LvArray::Array.\n"
 "\n"
@@ -204,11 +204,11 @@ static PyObject * PyArray_toNumPy( PyArray * const self, PyObject * const args )
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
 static PyMethodDef PyArray_methods[] = {
-  { "getSingleParameterResizeIndex", (PyCFunction) PyArray_getSingleParameterResizeIndex, METH_NOARGS, PyArray_getSingleParameterResizeIndexDocString },
-  { "setSingleParameterResizeIndex", (PyCFunction) PyArray_setSingleParameterResizeIndex, METH_VARARGS, PyArray_setSingleParameterResizeIndexDocString },
+  { "get_single_parameter_resize_index", (PyCFunction) PyArray_getSingleParameterResizeIndex, METH_NOARGS, PyArray_getSingleParameterResizeIndexDocString },
+  { "set_single_parameter_resize_index", (PyCFunction) PyArray_setSingleParameterResizeIndex, METH_VARARGS, PyArray_setSingleParameterResizeIndexDocString },
   { "resize", (PyCFunction) PyArray_resize, METH_VARARGS, PyArray_resizeDocString },
-  { "resizeAll", (PyCFunction) PyArray_resizeAll, METH_VARARGS, PyArray_resizeAllDocString },
-  { "toNumPy", (PyCFunction) PyArray_toNumPy, METH_VARARGS, PyArray_toNumPyDocString },
+  { "resize_all", (PyCFunction) PyArray_resizeAll, METH_VARARGS, PyArray_resizeAllDocString },
+  { "to_numpy", (PyCFunction) PyArray_toNumPy, METH_VARARGS, PyArray_toNumPyDocString },
   { nullptr, nullptr, 0, nullptr } // Sentinel
 };
 

@@ -1,0 +1,70 @@
+"""Tests for the SortedArray python wrapper."""
+
+import unittest
+
+import numpy as np
+from numpy import testing
+
+from testPyArray import get_array1d_int, get_array1d_double, get_array2d_ij_long, get_array2d_ji_float, get_array4d_kilj_double
+
+
+def clear(arr):
+    view = arr.to_numpy()
+    view[:] = view.dtype.type(0)
+
+
+class ArrayTests(unittest.TestCase):
+    """Tests for the Array python wrapper."""
+
+    lvarrays = (get_array1d_int, get_array1d_double, get_array2d_ij_long, get_array2d_ji_float, get_array4d_kilj_double)
+
+    def setUp(self):
+        for getter in self.lvarrays:
+            view = getter(True)
+            clear(view)
+
+    def test_modification(self):
+        for getter in self.lvarrays:
+            arr = getter(True)
+            clear(arr)
+            view = arr.to_numpy()
+            testing.assert_array_equal(view, np.zeros_like(view))
+            testing.assert_array_equal(view, getter(False).to_numpy())
+            view[:] = view.dtype.type(5)
+            testing.assert_array_equal(view, np.ones_like(view) * 5)
+            testing.assert_array_equal(view, getter(False).to_numpy())
+
+    def test_modification_read_only(self):
+        """Test that calling insert or remove on a read only SortedArray raises an exception."""
+        for getter in self.lvarrays:
+            view = getter(False).to_numpy()
+            with self.assertRaisesRegex(ValueError, "read-only"):
+                view[0] = view.dtype.type(6)
+
+    def test_resize_all(self):
+        for getter in self.lvarrays:
+            arr = getter(True)
+            original_dims = arr.to_numpy().shape
+            new_dims = np.array(original_dims, dtype=np.int32) * 2
+            arr.resize_all(new_dims)
+            testing.assert_array_equal(new_dims, np.array(arr.to_numpy().shape))
+
+    def test_resize_one_dim_bad_input(self):
+        for getter in self.lvarrays:
+            arr = getter(True)
+            arr.set_single_parameter_resize_index(0)
+            self.assertEqual(arr.get_single_parameter_resize_index(), 0)
+            with self.assertRaisesRegex(ValueError, "out of bounds"):
+                arr.set_single_parameter_resize_index(10)
+
+    def test_resize_one_dim(self):
+        for getter in self.lvarrays:
+            arr = getter(True)
+            for dim in range(len(arr.to_numpy().shape)):
+                arr.set_single_parameter_resize_index(dim)
+                for resize_val in (100, 75, 76):
+                    arr.resize(resize_val)
+                    self.assertEqual(resize_val, arr.to_numpy().shape[dim])
+
+if __name__ == '__main__':
+    unittest.main()
