@@ -6,6 +6,7 @@ set( pythonTests
      testPythonListOfStrings.cpp
      testPyCallback.cpp
      testPyArrayOfArrays.cpp
+     testPyArrayOfSets.cpp
     )
 
 foreach(test ${pythonTests})
