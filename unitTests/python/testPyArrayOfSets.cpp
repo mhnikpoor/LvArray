@@ -20,6 +20,7 @@
 #include <Python.h>
 
 #include "python/PyArrayOfSets.hpp"
+#include "python/python.hpp"
 #include "MallocBuffer.hpp"
 
 static LvArray::ArrayOfSets< long long, std::ptrdiff_t, LvArray::MallocBuffer > arrayOfSets{ 5,6 };
@@ -64,8 +65,9 @@ PyInit_testPyArrayOfSets(void)
 {
   LvArray::python::PyObjectRef<> module = PyModule_Create( &testPyArrayOfSetsModule );
 
-  if ( !LvArray::python::addTypeToModule( module, LvArray::python::getPyArrayOfSetsType(), "ArrayOfSets" ) )
-  { return nullptr; }
+  if ( !LvArray::python::addPyLvArrayModule( module ) ){
+    return nullptr;
+  }
 
   return module.release();
 }

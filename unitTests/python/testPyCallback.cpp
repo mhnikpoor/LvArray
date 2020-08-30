@@ -4,6 +4,7 @@
 
 #include "python/PyFunc.hpp"
 #include "python/PySortedArray.hpp"
+#include "python/python.hpp"
 #include "MallocBuffer.hpp"
 
 static LvArray::SortedArray< long, std::ptrdiff_t, LvArray::MallocBuffer > sortedArrayOfLongs;
@@ -60,8 +61,9 @@ PyInit_testPyCallback(void)
 {
   LvArray::python::PyObjectRef<> module = PyModule_Create( &testPyCallbackModule );
 
-    if ( !LvArray::python::addTypeToModule( module, LvArray::python::getPySortedArrayType(), "SortedArray" ) )
-    { return nullptr; }
+    if ( !LvArray::python::addPyLvArrayModule( module ) ){
+        return nullptr;
+    }
     Py_INCREF( Py_None );
     if (PyModule_AddObject(module, "callback", Py_None) < 0) {
         Py_DECREF(Py_None);

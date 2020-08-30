@@ -5,6 +5,8 @@ import unittest
 import numpy as np
 from numpy import testing
 
+import faulthandler; faulthandler.enable()
+
 from testPyCRSMatrix import get_matrix_double, get_matrix_int
 
 

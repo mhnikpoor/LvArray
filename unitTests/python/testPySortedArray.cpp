@@ -20,6 +20,7 @@
 #include <Python.h>
 
 #include "python/PySortedArray.hpp"
+#include "python/python.hpp"
 #include "MallocBuffer.hpp"
 
 static LvArray::SortedArray< int, std::ptrdiff_t, LvArray::MallocBuffer > sortedArrayOfInts;
@@ -76,8 +77,9 @@ PyInit_testPySortedArray(void)
 {
   LvArray::python::PyObjectRef<> module = PyModule_Create( &testPySortedArrayModule );
 
-  if ( !LvArray::python::addTypeToModule( module, LvArray::python::getPySortedArrayType(), "SortedArray" ) )
-  { return nullptr; }
+  if ( !LvArray::python::addPyLvArrayModule( module ) ){
+    return nullptr;
+  }
 
   return module.release();
 }

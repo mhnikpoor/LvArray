@@ -195,7 +195,7 @@ static PySequenceMethods PyArrayOfSetsSequenceMethods = {
 
 static PyTypeObject PyArrayOfSetsType = {
   PyVarObject_HEAD_INIT( nullptr, 0 )
-  .tp_name = "ArrayOfSets",
+  .tp_name = "pylvarray.ArrayOfSets",
   .tp_basicsize = sizeof( PyArrayOfSets ),
   .tp_itemsize = 0,
   .tp_dealloc = (destructor) PyArrayOfSets_dealloc,

@@ -20,6 +20,7 @@
 #include <Python.h>
 
 #include "python/PyCRSMatrix.hpp"
+#include "python/python.hpp"
 #include "MallocBuffer.hpp"
 
 static LvArray::CRSMatrix< int, int, int, LvArray::MallocBuffer > matrixOfInts;
@@ -76,8 +77,9 @@ PyInit_testPyCRSMatrix(void)
 {
   LvArray::python::PyObjectRef<> module = PyModule_Create( &testPyCRSMatrixModule );
 
-  if ( !LvArray::python::addTypeToModule( module, LvArray::python::getPyCRSMatrixType(), "CRSMatrix" ) )
-  { return nullptr; }
+  if ( !LvArray::python::addPyLvArrayModule( module ) ){
+    return nullptr;
+  }
 
   return module.release();
 }

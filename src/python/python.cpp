@@ -50,6 +50,22 @@ static struct PyModuleDef LvArrayModuleFunctions = {
   .m_methods = LvArrayFuncs
 };
 
+static bool addConstants( PyObject * module )
+{
+  std::array< std::pair< long, char const * >, 3 > const constants = { {
+    { static_cast< long >( LvArray::python::PyModify::READ_ONLY ), "READ_ONLY" },
+    { static_cast< long >( LvArray::python::PyModify::MODIFIABLE ), "MODIFIABLE" },
+    { static_cast< long >( LvArray::python::PyModify::RESIZEABLE ), "RESIZEABLE" }
+  } };
+
+  for ( std::pair< long, char const * > const & pair : constants )
+  {
+    PYTHON_ERROR_IF( PyModule_AddIntConstant( module, pair.second, pair.first ), PyExc_RuntimeError,
+                     "couldn't add constant", false );
+  }
+
+  return true;
+}
 
 PyObjectRef<> getModule()
 {
@@ -68,12 +84,33 @@ PyObjectRef<> getModule()
   if ( !LvArray::python::addTypeToModule( module, LvArray::python::getPyArrayOfArraysType(), "ArrayOfArrays" ) )
   { return nullptr; }
 
+  if ( !LvArray::python::addTypeToModule( module, LvArray::python::getPyArrayOfSetsType(), "ArrayOfSets" ) )
+  { return nullptr; }
+
   if ( !LvArray::python::addTypeToModule( module, LvArray::python::getPyCRSMatrixType(), "CRSMatrix" ) )
   { return nullptr; }
 
+  if ( !addConstants( module ) ){
+    return nullptr;
+  }
+
   // Since we return module we don't want to decrease the reference count.
-  return module;
+  return module.release();
+}
+
+bool addPyLvArrayModule(PyObject * module){
+  LvArray::python::PyObjectRef<> pylvarrayModule { PyImport_ImportModule( "pylvarray" ) };
+  if (PyModule_AddObject(module, "pylvarray", pylvarrayModule) < 0) {
+      return false;
+  }
+  return true;
 }
 
 } // namespace python
 } // namespace LvArray
+
+PyMODINIT_FUNC
+PyInit_pylvarray(void)
+{
+  return LvArray::python::getModule().release();
+}

@@ -1,6 +1,7 @@
 import unittest
 
 import testPyCallback
+import pylvarray
 
 class CustomException(Exception):
     pass
@@ -28,7 +29,7 @@ class LvArrayCallbackTests(unittest.TestCase):
 
     def test_arg1(self):
         def callback(arg):
-            self.assertTrue(isinstance(arg, testPyCallback.SortedArray))
+            self.assertTrue(isinstance(arg, pylvarray.SortedArray))
             dtype = arg.to_numpy().dtype.type
             for i in range(10):
                 arg.insert(dtype(i))

@@ -20,6 +20,7 @@
 #include <Python.h>
 
 #include "python/PyArray.hpp"
+#include "python/python.hpp"
 #include "MallocBuffer.hpp"
 
 static LvArray::Array< int, 1, RAJA::PERM_I, std::ptrdiff_t, LvArray::MallocBuffer > array1DOfInts{10};
@@ -116,8 +117,9 @@ PyInit_testPyArray(void)
 {
   LvArray::python::PyObjectRef<> module = PyModule_Create( &testPyArrayModule );
 
-  if ( !LvArray::python::addTypeToModule( module, LvArray::python::getPyArrayType(), "Array" ) )
-  { return nullptr; }
+  if ( !LvArray::python::addPyLvArrayModule( module ) ){
+    return nullptr;
+  }
 
   return module.release();
 }
