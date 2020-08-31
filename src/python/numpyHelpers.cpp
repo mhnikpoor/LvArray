@@ -82,6 +82,52 @@ PyObject * createNumpyArrayImpl( void * const data,
                                nullptr );
 }
 
+
+PyObject * createCupyArrayImpl( void * const data,
+                                 std::type_index const type,
+                                 bool const dataIsConst,
+                                 int const ndim,
+                                 std::ptrdiff_t const * const dims,
+                                 std::ptrdiff_t const * const strides )
+{
+  LVARRAY_UNUSED_VARIABLE( dataIsConst );
+  if ( !import_array_wrapper() )
+  { return nullptr; }
+  std::pair< int, std::size_t > const typeInfo = getNumPyType( type );
+  PYTHON_ERROR_IF( typeInfo.first == NPY_NOTYPE, PyExc_TypeError,
+                   "No NumPy type for " << system::demangle( type.name() ), nullptr );
+  PyObjectRef<> typeObject{ PyArray_TypeObjectFromType( typeInfo.first ) };
+  PYTHON_ERROR_IF( typeObject == nullptr, PyExc_TypeError, "Couldn't get type object", nullptr);
+  PyObjectRef<> strideTuple{ PyTuple_New( integerConversion< Py_ssize_t >( ndim ) ) };
+  PyObjectRef<> dimTuple{ PyTuple_New( integerConversion< Py_ssize_t >( ndim ) ) };
+  if( strideTuple == nullptr || dimTuple == nullptr )
+  { return nullptr; }
+  Py_ssize_t totalSize = static_cast< Py_ssize_t >( typeInfo.second );
+  for (Py_ssize_t i = 0; i < ndim; ++i)
+  {
+    totalSize = totalSize * dims[ i ];
+    PyObjectRef<> strideEntry{ PyLong_FromSsize_t( integerConversion< Py_ssize_t >( strides[ i ] * typeInfo.second ) ) };
+    PyObjectRef<> dimEntry{ PyLong_FromSsize_t( integerConversion< Py_ssize_t >( dims[ i ] ) ) };
+    if( dimEntry == nullptr || strideEntry == nullptr )
+    { return nullptr; }
+    PyTuple_SET_ITEM( static_cast< PyObject * >( strideTuple ), i, strideEntry );
+    PyTuple_SET_ITEM( static_cast< PyObject * >( dimTuple ), i, dimEntry );
+  }
+  PyObjectRef<> cupyHelper = PyImport_ImportModule( "cupy_helper" );
+  if( cupyHelper == nullptr )
+  { return nullptr; }
+  PyObjectRef<> constructor = PyObject_GetAttrString( cupyHelper, "create_cupy_array" );
+  if( constructor == nullptr )
+  { return nullptr; }
+  return PyObject_CallFunction( constructor,
+                                "nnOOO",
+                                (Py_ssize_t) ( data ),
+                                totalSize,
+                                static_cast< PyObject * >( typeObject ),
+                                static_cast< PyObject * >( strideTuple ),
+                                static_cast< PyObject * >( dimTuple ) );
+}
+
 } // namespace internal
 
 bool import_array_wrapper()

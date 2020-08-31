@@ -56,9 +56,15 @@
  * @brief Begin mixing designated and non-designated initializers in the same initializer list.
  */
 #if defined( __clang_version__ )
-  #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
-    _Pragma( "GCC diagnostic push" )
-    _Pragma( "GCC diagnostic ignored \"-Wc99-designator\"")
+  #if defined( __CUDACC__ )
+    #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
+      _Pragma( "GCC diagnostic push" )
+      _Pragma( "GCC diagnostic ignored \"-Wgnu-designator\"")
+  #elif 1
+    #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
+      _Pragma( "GCC diagnostic push" )
+      _Pragma( "GCC diagnostic ignored \"-Wc99-extensions\"")
+  #endif
 #else
   #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
     _Pragma( "GCC diagnostic push" )

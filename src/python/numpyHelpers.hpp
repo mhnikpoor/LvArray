@@ -55,6 +55,13 @@ PyObject * createNumpyArrayImpl( void * const data,
                                  std::ptrdiff_t const * const dims,
                                  std::ptrdiff_t const * const strides );
 
+PyObject * createCupyArrayImpl( void * const data,
+                                 std::type_index const type,
+                                 bool const dataIsConst,
+                                 int const ndim,
+                                 std::ptrdiff_t const * const dims,
+                                 std::ptrdiff_t const * const strides );
+
 } // namespace internal
 
 bool import_array_wrapper();
@@ -79,6 +86,14 @@ createNumPyArray( T * const data,
     strides[ i ] = integerConversion< std::ptrdiff_t >( stridesPtr[ i ] );
   }
 
+  if ( false ){
+    return internal::createCupyArrayImpl( const_cast< void * >( static_cast< void const * >( data ) ),
+                                           std::type_index( typeid( T ) ),
+                                           std::is_const< T >::value || !modify,
+                                           ndim,
+                                           dims.data(),
+                                           strides.data() );
+  }
   return internal::createNumpyArrayImpl( const_cast< void * >( static_cast< void const * >( data ) ),
                                          std::type_index( typeid( T ) ),
                                          std::is_const< T >::value || !modify,
