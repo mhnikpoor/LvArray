@@ -17,7 +17,7 @@
  */
 
 /**
- * @file 
+ * @file
  */
 
 #pragma once
@@ -55,8 +55,8 @@ public:
   /**
    *
    */
-  PyCRSMatrixWrapperBase( bool const modifiable ):
-    m_modifiable( modifiable )
+  PyCRSMatrixWrapperBase( ):
+    m_accessLevel( static_cast< int >( LvArray::python::PyModify::READ_ONLY ) )
   {}
 
   /**
@@ -65,10 +65,16 @@ public:
   virtual ~PyCRSMatrixWrapperBase() = default;
 
   /**
-   *
+   * @brief Return the access level for the array.
+   * @return the access level for the array.
    */
-  bool modifiable() const
-  { return m_modifiable; }
+  virtual int getAccessLevel() const
+  { return m_accessLevel; }
+
+  /**
+   * @brief Set the access level for the array.
+   */
+  virtual void setAccessLevel( int accessLevel ) = 0;
 
   /**
    *
@@ -116,19 +122,19 @@ public:
   virtual std::array< PyObject *, 3 > getEntriesColumnsAndOffsets() const = 0;
 
   /**
-   * 
+   *
    */
   virtual void resize( std::ptrdiff_t const numRows,
                        std::ptrdiff_t const numCols,
                        std::ptrdiff_t const initialRowCapacity ) = 0;
 
   /**
-   * 
+   *
    */
   virtual void compress() = 0;
 
   /**
-   * 
+   *
    */
   virtual std::ptrdiff_t insertNonZeros( std::ptrdiff_t const row,
                                          void const * const cols,
@@ -136,13 +142,13 @@ public:
                                          std::ptrdiff_t const numCols ) = 0;
 
   /**
-   * 
+   *
    */
   virtual std::ptrdiff_t removeNonZeros( std::ptrdiff_t const row,
                                          void const * const cols,
                                          std::ptrdiff_t const numCols ) = 0;
   /**
-   * 
+   *
    */
   virtual void addToRow( std::ptrdiff_t const row,
                          void const * const cols,
@@ -150,7 +156,8 @@ public:
                          std::ptrdiff_t const numCols ) const = 0;
 
 protected:
-  bool const m_modifiable;
+  /// access level for the array
+  int m_accessLevel;
 };
 
 /**
@@ -164,9 +171,8 @@ class PyCRSMatrixWrapper : public PyCRSMatrixWrapperBase
 {
 public:
 
-  PyCRSMatrixWrapper( CRSMatrix< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > & matrix,
-                      bool const modify ):
-    PyCRSMatrixWrapperBase( modify ),
+  PyCRSMatrixWrapper( CRSMatrix< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > & matrix ):
+    PyCRSMatrixWrapperBase( ),
     m_matrix( matrix )
   {}
 
@@ -180,7 +186,7 @@ public:
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual std::type_index columnType() const final override
   { return typeid( COL_TYPE ); }
-  
+
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual std::type_index entryType() const final override
   { return typeid( T ); }
@@ -233,7 +239,7 @@ public:
     T * const entries = m_matrix.getEntries( convertedRow );
     INDEX_TYPE const nnz = m_matrix.numNonZeros( convertedRow );
     constexpr INDEX_TYPE unitStride = 1;
-    return createNumPyArray( entries, modifiable(), 1, &nnz, &unitStride );
+    return createNumPyArray( entries, getAccessLevel(), 1, &nnz, &unitStride );
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -246,9 +252,18 @@ public:
     INDEX_TYPE const numNonZeros = offsets[ m_matrix.numRows() ]; // size of columns and entries
     INDEX_TYPE offsetSize = m_matrix.numRows() + 1;
     constexpr INDEX_TYPE unitStride = 1;
-    return { createNumPyArray( entries, modifiable(), 1, &numNonZeros, &unitStride ),
+    return { createNumPyArray( entries, getAccessLevel() >= static_cast< int >( LvArray::python::PyModify::MODIFIABLE ), 1, &numNonZeros, &unitStride ),
              createNumPyArray( columns, false, 1, &numNonZeros, &unitStride ),
              createNumPyArray( offsets, false, 1, &offsetSize, &unitStride ) };
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  virtual void setAccessLevel( int accessLevel ) final override
+  {
+    if ( accessLevel >= static_cast< int >( LvArray::python::PyModify::RESIZEABLE ) ){
+      // touch
+    }
+    m_accessLevel = accessLevel;
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -282,7 +297,7 @@ public:
   virtual std::ptrdiff_t removeNonZeros( std::ptrdiff_t const row,
                                          void const * const cols,
                                          std::ptrdiff_t const numCols ) final override
-  { 
+  {
     INDEX_TYPE const convertedRow = integerConversion< INDEX_TYPE >( row );
     COL_TYPE const * const castedCols = reinterpret_cast< COL_TYPE const * >( cols );
     INDEX_TYPE const convertedNumCols = integerConversion< INDEX_TYPE >( numCols );
@@ -324,10 +339,9 @@ template< typename T,
           typename COL_TYPE,
           typename INDEX_TYPE,
           template< typename > class BUFFER_TYPE >
-PyObject * create( CRSMatrix< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > & matrix, bool const modify )
+PyObject * create( CRSMatrix< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > & matrix )
 {
-  matrix.move( MemorySpace::CPU, modify );
-  return internal::create( std::make_unique< internal::PyCRSMatrixWrapper< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > >( matrix, modify ) );
+  return internal::create( std::make_unique< internal::PyCRSMatrixWrapper< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > >( matrix ) );
 }
 
 /**

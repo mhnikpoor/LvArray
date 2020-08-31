@@ -44,8 +44,8 @@ namespace python
 #define VERIFY_INITIALIZED( self ) \
   PYTHON_ERROR_IF( self->arrayOfArrays == nullptr, PyExc_RuntimeError, "The PyArrayOfArrays is not initialized.", nullptr )
 
-#define VERIFY_MODIFIABLE( self ) \
-  PYTHON_ERROR_IF( !self->arrayOfArrays->modifiable(), PyExc_RuntimeError, "The PyArrayOfArrays is not modifiable.", nullptr )
+#define VERIFY_RESIZEABLE( self ) \
+  PYTHON_ERROR_IF( self->arrayOfArrays->getAccessLevel() < static_cast< int >( LvArray::python::PyModify::RESIZEABLE ), PyExc_RuntimeError, "The PyArrayOfArrays is not resizeable.", nullptr )
 
 struct PyArrayOfArrays
 {
@@ -93,6 +93,10 @@ static PyObject * PyArrayOfArrays_getitem( PyArrayOfArrays * const self, Py_ssiz
 }
 
 static int PyArrayOfArrays_delitem( PyArrayOfArrays * const self, Py_ssize_t pyindex, PyObject * val ){
+  if ( self->arrayOfArrays->getAccessLevel() < static_cast< int >( LvArray::python::PyModify::RESIZEABLE ) ){
+    PyErr_SetString(PyExc_RuntimeError, "ArrayOfArrays is not resizeable");
+    return -1;
+  }
   if ( val != nullptr ){
     PyErr_SetString(PyExc_TypeError, "ArrayOfArrays object does not support item assignment");
     return -1;
@@ -123,6 +127,7 @@ static PyObject * PyArrayOfArrays_sq_repeat( PyArrayOfArrays * self, Py_ssize_t 
 static constexpr char const * PyArrayOfArrays_insertIntoDocString =
 "";
 static PyObject * PyArrayOfArrays_insertIntoArray( PyArrayOfArrays * self, PyObject * args ){
+  VERIFY_RESIZEABLE( self );
   long long array, index;
   PyObject * arr;
   if( !PyArg_ParseTuple( args, "LLO", &array, &index, &arr ) )
@@ -143,6 +148,7 @@ static PyObject * PyArrayOfArrays_insertIntoArray( PyArrayOfArrays * self, PyObj
 static constexpr char const * PyArrayOfArrays_insertDocString =
 "";
 static PyObject * PyArrayOfArrays_insert( PyArrayOfArrays * self, PyObject * args ){
+  VERIFY_RESIZEABLE( self );
   long long index;
   PyObject * arr;
   if( !PyArg_ParseTuple( args, "LO", &index, &arr ) )
@@ -162,6 +168,7 @@ static PyObject * PyArrayOfArrays_insert( PyArrayOfArrays * self, PyObject * arg
 static constexpr char const * PyArrayOfArrays_eraseFromDocString =
 "";
 static PyObject * PyArrayOfArrays_eraseFrom( PyArrayOfArrays * self, PyObject * args ){
+  VERIFY_RESIZEABLE( self );
   long long index, begin;
   if( !PyArg_ParseTuple( args, "LL", &index, &begin ) )
   { return nullptr; }
@@ -174,6 +181,33 @@ static PyObject * PyArrayOfArrays_eraseFrom( PyArrayOfArrays * self, PyObject * 
   Py_RETURN_NONE;
 }
 
+static constexpr char const * PyArrayOfArrays_getAccessLevelDocString =
+"get_access_level()\n"
+"--\n\n";
+static PyObject * PyArrayOfArrays_getAccessLevel( PyArrayOfArrays * const self, PyObject * const args )
+{
+  LVARRAY_UNUSED_VARIABLE( args );
+
+  VERIFY_NON_NULL_SELF( self );
+  VERIFY_INITIALIZED( self );
+
+  return PyLong_FromLong( self->arrayOfArrays->getAccessLevel() );
+}
+
+static constexpr char const * PyArrayOfArrays_setAccessLevelDocString =
+"set_access_level()\n"
+"--\n\n";
+static PyObject * PyArrayOfArrays_setAccessLevel( PyArrayOfArrays * const self, PyObject * const args )
+{
+  VERIFY_NON_NULL_SELF( self );
+  VERIFY_INITIALIZED( self );
+
+  int newAccessLevel;
+  if ( !PyArg_ParseTuple( args, "i", &newAccessLevel ) )
+  { return nullptr; }
+  self->arrayOfArrays->setAccessLevel( newAccessLevel );
+  Py_RETURN_NONE;
+}
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
@@ -181,6 +215,8 @@ static PyMethodDef PyArrayOfArrays_methods[] = {
   { "insert", (PyCFunction) PyArrayOfArrays_insert, METH_VARARGS, PyArrayOfArrays_insertDocString },
   { "insert_into", (PyCFunction) PyArrayOfArrays_insertIntoArray, METH_VARARGS, PyArrayOfArrays_insertIntoDocString },
   { "erase_from", (PyCFunction) PyArrayOfArrays_eraseFrom, METH_VARARGS, PyArrayOfArrays_eraseFromDocString },
+  { "get_access_level", (PyCFunction) PyArrayOfArrays_getAccessLevel, METH_NOARGS, PyArrayOfArrays_getAccessLevelDocString },
+  { "set_access_level", (PyCFunction) PyArrayOfArrays_setAccessLevel, METH_VARARGS, PyArrayOfArrays_setAccessLevelDocString },
   { nullptr, nullptr, 0, nullptr } // Sentinel
 };
 

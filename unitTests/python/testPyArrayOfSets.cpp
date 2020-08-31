@@ -28,12 +28,8 @@ static LvArray::ArrayOfSets< long long, std::ptrdiff_t, LvArray::MallocBuffer > 
 static PyObject * getArrayOfSets( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
-
-  int modify;
-  if( !PyArg_ParseTuple( args, "p", &modify ) )
-  { return nullptr; }
-
-  return LvArray::python::create( arrayOfSets, modify );
+  LVARRAY_UNUSED_VARIABLE( args );
+  return LvArray::python::create( arrayOfSets );
 }
 
 
@@ -43,7 +39,7 @@ BEGIN_ALLOW_DESIGNATED_INITIALIZERS
  * Array of functions and docstrings to export to Python
  */
 static PyMethodDef testPyArrayOfSetsFuncs[] = {
-  {"get_array_of_sets", getArrayOfSets, METH_VARARGS, ""},
+  {"get_array_of_sets", getArrayOfSets, METH_NOARGS, ""},
   {nullptr, nullptr, 0, nullptr}        /* Sentinel */
 };
 

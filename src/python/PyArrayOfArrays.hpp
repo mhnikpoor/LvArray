@@ -52,8 +52,8 @@ public:
   /**
    *
    */
-  PyArrayOfArraysWrapperBase( bool const modifiable ):
-    m_modifiable( modifiable )
+  PyArrayOfArraysWrapperBase( ):
+    m_accessLevel( static_cast< int >( LvArray::python::PyModify::READ_ONLY ) )
   {}
 
   /**
@@ -62,10 +62,16 @@ public:
   virtual ~PyArrayOfArraysWrapperBase() = default;
 
   /**
-   *
+   * @brief Return the access level for the array.
+   * @return the access level for the array.
    */
-  bool modifiable() const
-  { return m_modifiable; }
+  virtual int getAccessLevel() const
+  { return m_accessLevel; }
+
+  /**
+   * @brief Set the access level for the array.
+   */
+  virtual void setAccessLevel( int accessLevel ) = 0;
 
   /**
    *
@@ -113,7 +119,8 @@ public:
   virtual void insertIntoArray( long long array, long long index, void const * data, std::ptrdiff_t numvals ) = 0;
 
 protected:
-  bool const m_modifiable;
+  /// access level for the array
+  int m_accessLevel;
 };
 
 /**
@@ -129,8 +136,8 @@ public:
   /**
    *
    */
-  PyArrayOfArraysWrapper( ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > & arrayOfArrays, bool const modify ):
-    PyArrayOfArraysWrapperBase( modify ),
+  PyArrayOfArraysWrapper( ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > & arrayOfArrays ):
+    PyArrayOfArraysWrapperBase( ),
     m_arrayOfArrays( arrayOfArrays )
   {}
 
@@ -168,7 +175,7 @@ public:
     T* data = slice;
     constexpr INDEX_TYPE strides = 1;
     INDEX_TYPE size = slice.size();
-    return createNumPyArray( data, m_modifiable, 1, &size, &strides );
+    return createNumPyArray( data, getAccessLevel() >= static_cast< int >( LvArray::python::PyModify::MODIFIABLE ), 1, &size, &strides );
   }
 
   /**
@@ -213,6 +220,14 @@ public:
     m_arrayOfArrays.insertIntoArray( convertedArray, convertedIndex, begin, end );
   }
 
+  virtual void setAccessLevel( int accessLevel ) final override
+  {
+    if ( accessLevel >= static_cast< int >( LvArray::python::PyModify::RESIZEABLE ) ){
+      // touch
+    }
+    m_accessLevel = accessLevel;
+  }
+
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual std::type_index valueType() const override
   { return std::type_index( typeid( T ) ); }
@@ -232,10 +247,9 @@ PyObject * create( std::unique_ptr< internal::PyArrayOfArraysWrapperBase > && ar
  *
  */
 template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-PyObject * create( ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > & array, bool const modify )
+PyObject * create( ArrayOfArrays< T, INDEX_TYPE, BUFFER_TYPE > & array )
 {
-  array.move( MemorySpace::CPU, modify );
-  return internal::create( std::make_unique< internal::PyArrayOfArraysWrapper< T, INDEX_TYPE, BUFFER_TYPE > >( array, modify ) );
+  return internal::create( std::make_unique< internal::PyArrayOfArraysWrapper< T, INDEX_TYPE, BUFFER_TYPE > >( array ) );
 }
 
 

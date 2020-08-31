@@ -53,8 +53,7 @@ public:
 
   /**
    * @brief Constructor.
-   * @param modifiable If the array can be modified.
-   * @details If @p modifiable is @c false then the array cannot be modified in any way.
+   * Array begins as read-only
    */
   PyArrayWrapperBase():
     m_accessLevel( static_cast< int >( LvArray::python::PyModify::READ_ONLY ) )
@@ -66,12 +65,15 @@ public:
   virtual ~PyArrayWrapperBase() = default;
 
   /**
-   * @brief Return @c true iff the array can be modified.
-   * @return @c true iff the array can be modified.
+   * @brief Return the access level for the array.
+   * @return the access level for the array.
    */
   virtual int getAccessLevel() const
   { return m_accessLevel; }
 
+  /**
+   * @brief Set the access level for the array.
+   */
   virtual void setAccessLevel( int accessLevel ) = 0;
 
   /**

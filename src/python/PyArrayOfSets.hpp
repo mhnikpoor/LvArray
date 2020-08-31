@@ -52,8 +52,8 @@ public:
   /**
    *
    */
-  PyArrayOfSetsWrapperBase( bool const modifiable ):
-    m_modifiable( modifiable )
+  PyArrayOfSetsWrapperBase( ):
+    m_accessLevel( static_cast< int >( LvArray::python::PyModify::READ_ONLY ) )
   {}
 
   /**
@@ -62,10 +62,16 @@ public:
   virtual ~PyArrayOfSetsWrapperBase() = default;
 
   /**
-   *
+   * @brief Return the access level for the array.
+   * @return the access level for the array.
    */
-  bool modifiable() const
-  { return m_modifiable; }
+  virtual int getAccessLevel() const
+  { return m_accessLevel; }
+
+  /**
+   * @brief Set the access level for the array.
+   */
+  virtual void setAccessLevel( int accessLevel ) = 0;
 
   /**
    *
@@ -108,7 +114,8 @@ public:
   virtual void insertIntoSet( long long setIndex, void const * data, std::ptrdiff_t numvals ) = 0;
 
 protected:
-  bool const m_modifiable;
+  /// access level for the array
+  int m_accessLevel;
 };
 
 /**
@@ -124,8 +131,8 @@ public:
   /**
    *
    */
-  PyArrayOfSetsWrapper( ArrayOfSets< T, INDEX_TYPE, BUFFER_TYPE > & arrayOfSets, bool const modify ):
-    PyArrayOfSetsWrapperBase( modify ),
+  PyArrayOfSetsWrapper( ArrayOfSets< T, INDEX_TYPE, BUFFER_TYPE > & arrayOfSets ):
+    PyArrayOfSetsWrapperBase( ),
     m_arrayOfSets( arrayOfSets )
   {}
 
@@ -202,6 +209,14 @@ public:
   virtual std::type_index valueType() const override
   { return std::type_index( typeid( T ) ); }
 
+  virtual void setAccessLevel( int accessLevel ) final override
+  {
+    if ( accessLevel >= static_cast< int >( LvArray::python::PyModify::RESIZEABLE ) ){
+      // touch
+    }
+    m_accessLevel = accessLevel;
+  }
+
 private:
   ArrayOfSets< T, INDEX_TYPE, BUFFER_TYPE > & m_arrayOfSets;
 };
@@ -217,10 +232,9 @@ PyObject * create( std::unique_ptr< internal::PyArrayOfSetsWrapperBase > && arra
  *
  */
 template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-PyObject * create( ArrayOfSets< T, INDEX_TYPE, BUFFER_TYPE > & array, bool const modify )
+PyObject * create( ArrayOfSets< T, INDEX_TYPE, BUFFER_TYPE > & array )
 {
-  array.move( MemorySpace::CPU, modify );
-  return internal::create( std::make_unique< internal::PyArrayOfSetsWrapper< T, INDEX_TYPE, BUFFER_TYPE > >( array, modify ) );
+  return internal::create( std::make_unique< internal::PyArrayOfSetsWrapper< T, INDEX_TYPE, BUFFER_TYPE > >( array ) );
 }
 
 

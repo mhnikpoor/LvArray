@@ -29,23 +29,17 @@ static LvArray::CRSMatrix< double, long, long, LvArray::MallocBuffer > matrixOfD
 static PyObject * getMatrixOfInts( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
+  LVARRAY_UNUSED_VARIABLE( args );
 
-  int modify;
-  if( !PyArg_ParseTuple( args, "p", &modify ) )
-  { return nullptr; }
-
-  return LvArray::python::create( matrixOfInts, modify );
+  return LvArray::python::create( matrixOfInts );
 }
 
 static PyObject * getMatrixOfDoubles( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
+  LVARRAY_UNUSED_VARIABLE( args );
 
-  int modify;
-  if( !PyArg_ParseTuple( args, "p", &modify ) )
-  { return nullptr; }
-
-  return LvArray::python::create( matrixOfDoubles, modify );
+  return LvArray::python::create( matrixOfDoubles );
 }
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
@@ -54,8 +48,8 @@ BEGIN_ALLOW_DESIGNATED_INITIALIZERS
  * Array of functions and docstrings to export to Python
  */
 static PyMethodDef testPyCRSMatrixFuncs[] = {
-  {"get_matrix_int", getMatrixOfInts, METH_VARARGS, ""},
-  {"get_matrix_double", getMatrixOfDoubles, METH_VARARGS, ""},
+  {"get_matrix_int", getMatrixOfInts, METH_NOARGS, ""},
+  {"get_matrix_double", getMatrixOfDoubles, METH_NOARGS, ""},
   {nullptr, nullptr, 0, nullptr}        /* Sentinel */
 };
 

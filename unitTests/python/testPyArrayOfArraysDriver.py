@@ -3,10 +3,12 @@ import unittest
 import numpy as np
 from numpy import testing
 
+import pylvarray
 from testPyArrayOfArrays import get_array_of_arrays
 
 
 def clear(array):
+    array.set_access_level(pylvarray.RESIZEABLE)
     while array:
         del array[0]
 
@@ -14,23 +16,31 @@ def clear(array):
 class LvArrayArrayOfArraysTests(unittest.TestCase):
 
     def setUp(self):
-        clear(get_array_of_arrays(True))
-        self.assertEqual(len(get_array_of_arrays(True)), 0)
+        clear(get_array_of_arrays())
+        self.assertEqual(len(get_array_of_arrays()), 0)
 
     def populate(self, item=np.array((1, 2, 3)), num_entries=5):
-        arr = get_array_of_arrays(True)
+        arr = get_array_of_arrays()
+        arr.set_access_level(pylvarray.RESIZEABLE)
         for i in range(num_entries):
             arr.insert(i, item)
         return arr
 
     def test_modify(self):
-        arr = get_array_of_arrays(True)
-        print(arr)
-        x = len(arr)
-        print(x)
+        arr = self.populate()
+        arr.set_access_level(pylvarray.READ_ONLY)
+        with self.assertRaisesRegex(ValueError, "read-only"):
+            arr[0][0] = 6
+        arr.set_access_level(pylvarray.MODIFIABLE)
+        self.assertTrue(arr[0].flags.writeable)
+        arr[0][0] = 6
+        arr.set_access_level(pylvarray.RESIZEABLE)
+        self.assertTrue(arr[0].flags.writeable)
+        arr[0][0] = 6
 
     def test_bad_delitem(self):
-        arr = get_array_of_arrays(True)
+        arr = get_array_of_arrays()
+        arr.set_access_level(pylvarray.RESIZEABLE)
         with self.assertRaises(IndexError):
             del arr[-1]
         with self.assertRaises(IndexError):
@@ -61,12 +71,14 @@ class LvArrayArrayOfArraysTests(unittest.TestCase):
             testing.assert_array_equal(subarray, arr[i])
 
     def test_setitem(self):
-        arr = get_array_of_arrays(True)
+        arr = get_array_of_arrays()
+        arr.set_access_level(pylvarray.RESIZEABLE)
         with self.assertRaises(TypeError):
             arr[0] = 5
 
     def test_insert(self):
-        arr = get_array_of_arrays(True)
+        arr = get_array_of_arrays()
+        arr.set_access_level(pylvarray.RESIZEABLE)
         size = len(arr)
         to_insert = np.array((1, 2, 3))
         for i in range(1, 6):
@@ -75,7 +87,8 @@ class LvArrayArrayOfArraysTests(unittest.TestCase):
             testing.assert_array_equal(arr[i - 1], to_insert)
 
     def test_bad_insert(self):
-        arr = get_array_of_arrays(True)
+        arr = get_array_of_arrays()
+        arr.set_access_level(pylvarray.RESIZEABLE)
         with self.assertRaises(IndexError):
             arr.insert(-1, np.array((1, 2, 3)))
         with self.assertRaises(IndexError):
@@ -96,7 +109,8 @@ class LvArrayArrayOfArraysTests(unittest.TestCase):
             arr.insert_into(len(arr), 0, np.array((1,2)))
 
     def test_getitem(self):
-        arr = get_array_of_arrays(True)
+        arr = get_array_of_arrays()
+        arr.set_access_level(pylvarray.RESIZEABLE)
         to_insert = np.array((1, 2, 3))
         for i in range(6):
             arr.insert(i, np.array((1, 2, i)))

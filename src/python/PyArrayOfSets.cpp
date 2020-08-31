@@ -44,8 +44,8 @@ namespace python
 #define VERIFY_INITIALIZED( self ) \
   PYTHON_ERROR_IF( self->arrayOfSets == nullptr, PyExc_RuntimeError, "The PyArrayOfSets is not initialized.", nullptr )
 
-#define VERIFY_MODIFIABLE( self ) \
-  PYTHON_ERROR_IF( !self->arrayOfSets->modifiable(), PyExc_RuntimeError, "The PyArrayOfSets is not modifiable.", nullptr )
+#define VERIFY_RESIZEABLE( self ) \
+  PYTHON_ERROR_IF( self->arrayOfSets->getAccessLevel() < static_cast< int >( LvArray::python::PyModify::RESIZEABLE ), PyExc_RuntimeError, "The PyArrayOfSets is not resizeable.", nullptr )
 
 struct PyArrayOfSets
 {
@@ -93,6 +93,10 @@ static PyObject * PyArrayOfSets_getitem( PyArrayOfSets * const self, Py_ssize_t 
 }
 
 static int PyArrayOfSets_delitem( PyArrayOfSets * const self, Py_ssize_t pyindex, PyObject * val ){
+  if ( self->arrayOfSets->getAccessLevel() < static_cast< int >( LvArray::python::PyModify::RESIZEABLE ) ){
+    PyErr_SetString(PyExc_RuntimeError, "ArrayOfSets is not resizeable");
+    return -1;
+  }
   if ( val != nullptr ){
     PyErr_SetString(PyExc_TypeError, "ArrayOfSets object does not support item assignment");
     return -1;
@@ -123,6 +127,7 @@ static PyObject * PyArrayOfSets_sq_repeat( PyArrayOfSets * self, Py_ssize_t args
 static constexpr char const * PyArrayOfSets_insertIntoDocString =
 "";
 static PyObject * PyArrayOfSets_insertIntoSet( PyArrayOfSets * self, PyObject * args ){
+  VERIFY_RESIZEABLE( self );
   long long setIndex;
   PyObject * arr;
   if( !PyArg_ParseTuple( args, "LO", &setIndex, &arr ) )
@@ -142,6 +147,7 @@ static PyObject * PyArrayOfSets_insertIntoSet( PyArrayOfSets * self, PyObject * 
 static constexpr char const * PyArrayOfSets_insertSetDocString =
 "";
 static PyObject * PyArrayOfSets_insertSet( PyArrayOfSets * self, PyObject * args ){
+  VERIFY_RESIZEABLE( self );
   long long index;
   long long capacity = 0;
   if( !PyArg_ParseTuple( args, "L|L", &index, &capacity ) )
@@ -161,6 +167,7 @@ static PyObject * PyArrayOfSets_insertSet( PyArrayOfSets * self, PyObject * args
 static constexpr char const * PyArrayOfSets_removeFromSetDocString =
 "";
 static PyObject * PyArrayOfSets_removeFromSet( PyArrayOfSets * self, PyObject * args ){
+  VERIFY_RESIZEABLE( self );
   long long index;
   PyObject * arr;
   if( !PyArg_ParseTuple( args, "LO", &index, &arr ) )
@@ -175,6 +182,33 @@ static PyObject * PyArrayOfSets_removeFromSet( PyArrayOfSets * self, PyObject * 
   Py_RETURN_NONE;
 }
 
+static constexpr char const * PyArrayOfSets_getAccessLevelDocString =
+"get_access_level()\n"
+"--\n\n";
+static PyObject * PyArrayOfSets_getAccessLevel( PyArrayOfSets * const self, PyObject * const args )
+{
+  LVARRAY_UNUSED_VARIABLE( args );
+
+  VERIFY_NON_NULL_SELF( self );
+  VERIFY_INITIALIZED( self );
+
+  return PyLong_FromLong( self->arrayOfSets->getAccessLevel() );
+}
+
+static constexpr char const * PyArrayOfSets_setAccessLevelDocString =
+"set_access_level()\n"
+"--\n\n";
+static PyObject * PyArrayOfSets_setAccessLevel( PyArrayOfSets * const self, PyObject * const args )
+{
+  VERIFY_NON_NULL_SELF( self );
+  VERIFY_INITIALIZED( self );
+
+  int newAccessLevel;
+  if ( !PyArg_ParseTuple( args, "i", &newAccessLevel ) )
+  { return nullptr; }
+  self->arrayOfSets->setAccessLevel( newAccessLevel );
+  Py_RETURN_NONE;
+}
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
@@ -182,6 +216,8 @@ static PyMethodDef PyArrayOfSets_methods[] = {
   { "insert", (PyCFunction) PyArrayOfSets_insertSet, METH_VARARGS, PyArrayOfSets_insertSetDocString },
   { "insert_into", (PyCFunction) PyArrayOfSets_insertIntoSet, METH_VARARGS, PyArrayOfSets_insertIntoDocString },
   { "erase_from", (PyCFunction) PyArrayOfSets_removeFromSet, METH_VARARGS, PyArrayOfSets_removeFromSetDocString },
+  { "get_access_level", (PyCFunction) PyArrayOfSets_getAccessLevel, METH_NOARGS, PyArrayOfSets_getAccessLevelDocString },
+  { "set_access_level", (PyCFunction) PyArrayOfSets_setAccessLevel, METH_VARARGS, PyArrayOfSets_setAccessLevelDocString },
   { nullptr, nullptr, 0, nullptr } // Sentinel
 };
 

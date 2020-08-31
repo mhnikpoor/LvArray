@@ -6,10 +6,12 @@ import numpy as np
 from numpy import testing
 
 from testPyCRSMatrix import get_matrix_double, get_matrix_int
+import pylvarray
 
 
 def clear(matrix):
     for row in range(matrix.num_rows()):
+        matrix.set_access_level(pylvarray.RESIZEABLE)
         cols = np.array(matrix.get_columns(row))
         matrix.remove_nonzeros(row, cols)
         matrix.compress()
@@ -18,11 +20,12 @@ def clear(matrix):
 class CRSMatrixTests(unittest.TestCase):
 
     def setUp(self):
-        for matrix in (get_matrix_double(True), get_matrix_int(True)):
+        for matrix in (get_matrix_double(), get_matrix_int()):
             clear(matrix)
 
     def test_resize(self):
-        for matrix in (get_matrix_double(True), get_matrix_int(True)):
+        for matrix in (get_matrix_double(), get_matrix_int()):
+            matrix.set_access_level(pylvarray.RESIZEABLE)
             for rowcount in range(1, 11):
                 for colcount in range(1, 11):
                     matrix.resize(rowcount, colcount)
@@ -30,7 +33,8 @@ class CRSMatrixTests(unittest.TestCase):
                     self.assertEqual(matrix.num_columns(), colcount)
 
     def test_insertion(self):
-        for matrix in (get_matrix_double(True), get_matrix_int(True)):
+        for matrix in (get_matrix_double(), get_matrix_int()):
+            matrix.set_access_level(pylvarray.RESIZEABLE)
             matrix.resize(10, 10)
             dtype = matrix.to_scipy().diagonal().dtype.type
             for initializer in range(7, 17):
@@ -44,7 +48,8 @@ class CRSMatrixTests(unittest.TestCase):
                 testing.assert_array_equal(diagonal, expected_diagonal)
 
     def test_to_scipy(self):
-        for matrix in (get_matrix_double(True), get_matrix_int(True)):
+        for matrix in (get_matrix_double(), get_matrix_int()):
+            matrix.set_access_level(pylvarray.RESIZEABLE)
             matrix.resize(0, 0)
             with self.assertRaisesRegex(RuntimeError, "Empty matrices"):
                 matrix.to_scipy()
@@ -54,7 +59,8 @@ class CRSMatrixTests(unittest.TestCase):
                 matrix.to_scipy()
 
     def test_addtorow(self):
-        for matrix in (get_matrix_double(True), get_matrix_int(True)):
+        for matrix in (get_matrix_double(), get_matrix_int()):
+            matrix.set_access_level(pylvarray.RESIZEABLE)
             matrix.resize(7, 7)
             dtype = matrix.to_scipy().dtype.type
             for row in range(matrix.num_rows()):

@@ -6,11 +6,12 @@ import numpy as np
 from numpy import testing
 
 from testPySortedArray import get_sorted_array_int, get_sorted_array_long
-
+import pylvarray
 
 def clear(arr):
     """Test the insert method."""
     while len(arr.to_numpy()) > 0:
+        arr.set_access_level(pylvarray.RESIZEABLE)
         arr.remove(arr.to_numpy()[0])
 
 
@@ -22,12 +23,13 @@ class SortedArrayTests(unittest.TestCase):
     def setUp(self):
         """Test the insert method."""
         for getter in self.lvarrays:
-            clear(getter(True))
-            self.assertEqual(len(getter(True).to_numpy()), 0)
+            clear(getter())
+            self.assertEqual(len(getter().to_numpy()), 0)
 
     def test_insert(self):
         for getter in self.lvarrays:
-            arr = getter(True)
+            arr = getter()
+            arr.set_access_level(pylvarray.RESIZEABLE)
             dtype = arr.to_numpy().dtype.type
             for value in range(-5, 15):
                 arr.insert(dtype(value))
@@ -38,7 +40,8 @@ class SortedArrayTests(unittest.TestCase):
     def test_remove(self):
         """Test the remove method."""
         for getter in self.lvarrays:
-            arr = getter(True)
+            arr = getter()
+            arr.set_access_level(pylvarray.RESIZEABLE)
             dtype = arr.to_numpy().dtype.type
             for value in range(-5, 15):
                 arr.insert(dtype(value))
@@ -50,7 +53,8 @@ class SortedArrayTests(unittest.TestCase):
     def test_modification_read_only(self):
         """Test that calling insert or remove on a read only SortedArray raises an exception."""
         for getter in self.lvarrays:
-            arr = getter(True)
+            arr = getter()
+            arr.set_access_level(pylvarray.RESIZEABLE)
             dtype = arr.to_numpy().dtype.type
             arr.insert(dtype(5))
             self.assertEqual(arr.to_numpy()[0], dtype(5))
@@ -60,7 +64,8 @@ class SortedArrayTests(unittest.TestCase):
     def test_modification_unsafe_conversion(self):
         """Test that calling insert or remove that involves an unsafe type conversion raises an exception."""
         for getter in self.lvarrays:
-            arr = getter(True)
+            arr = getter()
+            arr.set_access_level(pylvarray.RESIZEABLE)
             with self.assertRaisesRegex(TypeError, "Cannot safely convert"):
                 arr.insert(5.6)
             with self.assertRaisesRegex(TypeError, "Cannot safely convert"):

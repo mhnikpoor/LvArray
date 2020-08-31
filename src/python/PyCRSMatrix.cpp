@@ -44,8 +44,8 @@ namespace python
 #define VERIFY_INITIALIZED( self ) \
   PYTHON_ERROR_IF( self->matrix == nullptr, PyExc_RuntimeError, "The PyCRSMatrix is not initialized.", nullptr )
 
-#define VERIFY_MODIFIABLE( self ) \
-  PYTHON_ERROR_IF( !self->matrix->modifiable(), PyExc_RuntimeError, "The PyCRSMatrix is not modifiable.", nullptr )
+#define VERIFY_RESIZEABLE( self ) \
+  PYTHON_ERROR_IF( self->matrix->getAccessLevel() < static_cast< int >( LvArray::python::PyModify::RESIZEABLE ), PyExc_RuntimeError, "The PyCRSMatrix is not resizeable.", nullptr )
 
 struct PyCRSMatrix
 {
@@ -176,7 +176,7 @@ static PyObject * PyCRSMatrix_resize( PyCRSMatrix * const self, PyObject * const
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
-  VERIFY_MODIFIABLE( self );
+  VERIFY_RESIZEABLE( self );
 
   long numRows, numCols, initialRowCapacity=0;
   if ( !PyArg_ParseTuple( args, "ll|l", &numRows, &numCols, &initialRowCapacity ) )
@@ -197,7 +197,7 @@ static PyObject * PyCRSMatrix_compress( PyCRSMatrix * const self, PyObject * con
   LVARRAY_UNUSED_VARIABLE( args );
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
-  VERIFY_MODIFIABLE( self );
+  VERIFY_RESIZEABLE( self );
 
   self->matrix->compress();
 
@@ -210,7 +210,7 @@ static PyObject * PyCRSMatrix_insertNonZeros( PyCRSMatrix * const self, PyObject
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
-  VERIFY_MODIFIABLE( self );
+  VERIFY_RESIZEABLE( self );
 
   long row;
   PyObject * cols, * entries;
@@ -245,7 +245,7 @@ static PyObject * PyCRSMatrix_removeNonZeros( PyCRSMatrix * const self, PyObject
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
-  VERIFY_MODIFIABLE( self );
+  VERIFY_RESIZEABLE( self );
 
   long row;
   PyObject * cols;
@@ -273,7 +273,7 @@ static PyObject * PyCRSMatrix_addToRow( PyCRSMatrix * const self, PyObject * con
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
-  VERIFY_MODIFIABLE( self );
+  VERIFY_RESIZEABLE( self );
 
   long row;
   PyObject * cols, * vals;
@@ -301,6 +301,32 @@ static PyObject * PyCRSMatrix_addToRow( PyCRSMatrix * const self, PyObject * con
   Py_RETURN_NONE;
 }
 
+static constexpr char const * PyCRSMatrix_getAccessLevelDocString =
+"get_access_level()\n"
+"--\n\n";
+static PyObject * PyCRSMatrix_getAccessLevel( PyCRSMatrix * const self, PyObject * const args )
+{
+  LVARRAY_UNUSED_VARIABLE( args );
+  VERIFY_NON_NULL_SELF( self );
+  VERIFY_INITIALIZED( self );
+
+  return PyLong_FromLong( self->matrix->getAccessLevel() );
+}
+
+static constexpr char const * PyCRSMatrix_setAccessLevelDocString =
+"set_access_level()\n"
+"--\n\n";
+static PyObject * PyCRSMatrix_setAccessLevel( PyCRSMatrix * const self, PyObject * const args )
+{
+  VERIFY_NON_NULL_SELF( self );
+  VERIFY_INITIALIZED( self );
+
+  int newAccessLevel;
+  if ( !PyArg_ParseTuple( args, "i", &newAccessLevel ) )
+  { return nullptr; }
+  self->matrix->setAccessLevel( newAccessLevel );
+  Py_RETURN_NONE;
+}
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
@@ -315,6 +341,8 @@ static PyMethodDef PyCRSMatrix_methods[] = {
   { "insert_nonzeros", (PyCFunction) PyCRSMatrix_insertNonZeros, METH_VARARGS, PyCRSMatrix_insertNonZerosDocString },
   { "remove_nonzeros", (PyCFunction) PyCRSMatrix_removeNonZeros, METH_VARARGS, PyCRSMatrix_removeNonZerosDocString },
   { "add_to_row", (PyCFunction) PyCRSMatrix_addToRow, METH_VARARGS, PyCRSMatrix_addToRowDocString },
+  { "get_access_level", (PyCFunction) PyCRSMatrix_getAccessLevel, METH_NOARGS, PyCRSMatrix_getAccessLevelDocString },
+  { "set_access_level", (PyCFunction) PyCRSMatrix_setAccessLevel, METH_VARARGS, PyCRSMatrix_setAccessLevelDocString },
   { nullptr, nullptr, 0, nullptr } // Sentinel
 };
 

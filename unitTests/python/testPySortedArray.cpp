@@ -29,23 +29,17 @@ static LvArray::SortedArray< long, std::ptrdiff_t, LvArray::MallocBuffer > sorte
 static PyObject * getSortedArrayOfInts( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
+  LVARRAY_UNUSED_VARIABLE( args );
 
-  int modify;
-  if( !PyArg_ParseTuple( args, "p", &modify ) )
-  { return nullptr; }
-
-  return LvArray::python::create( sortedArrayOfInts, modify );
+  return LvArray::python::create( sortedArrayOfInts );
 }
 
 static PyObject * getSortedArrayOfLongs( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
+  LVARRAY_UNUSED_VARIABLE( args );
 
-  int modify;
-  if( !PyArg_ParseTuple( args, "p", &modify ) )
-  { return nullptr; }
-
-  return LvArray::python::create( sortedArrayOfLongs, modify );
+  return LvArray::python::create( sortedArrayOfLongs );
 }
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
@@ -54,8 +48,8 @@ BEGIN_ALLOW_DESIGNATED_INITIALIZERS
  * Array of functions and docstrings to export to Python
  */
 static PyMethodDef testPySortedArrayFuncs[] = {
-  {"get_sorted_array_int", getSortedArrayOfInts, METH_VARARGS, ""},
-  {"get_sorted_array_long", getSortedArrayOfLongs, METH_VARARGS, ""},
+  {"get_sorted_array_int", getSortedArrayOfInts, METH_NOARGS, ""},
+  {"get_sorted_array_long", getSortedArrayOfLongs, METH_NOARGS, ""},
   {nullptr, nullptr, 0, nullptr}        /* Sentinel */
 };
 

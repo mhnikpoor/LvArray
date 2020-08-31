@@ -44,8 +44,8 @@ namespace python
 #define VERIFY_INITIALIZED( self ) \
   PYTHON_ERROR_IF( self->sortedArray == nullptr, PyExc_RuntimeError, "The PySortedArray is not initialized.", nullptr )
 
-#define VERIFY_MODIFIABLE( self ) \
-  PYTHON_ERROR_IF( !self->sortedArray->modifiable(), PyExc_RuntimeError, "The PySortedArray is not modifiable.", nullptr )
+#define VERIFY_RESIZEABLE( self ) \
+  PYTHON_ERROR_IF( self->sortedArray->getAccessLevel() < static_cast< int >( LvArray::python::PyModify::RESIZEABLE ), PyExc_RuntimeError, "The PySortedArray is not resizeable.", nullptr )
 
 struct PySortedArray
 {
@@ -81,7 +81,7 @@ static PyObject * PySortedArray_insert( PySortedArray * const self, PyObject * c
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
-  VERIFY_MODIFIABLE( self );
+  VERIFY_RESIZEABLE( self );
 
   PyObject * obj;
   if ( !PyArg_ParseTuple( args, "O", &obj ) )
@@ -102,7 +102,7 @@ static PyObject * PySortedArray_remove( PySortedArray * const self, PyObject * c
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
-  VERIFY_MODIFIABLE( self );
+  VERIFY_RESIZEABLE( self );
 
   PyObject * obj;
   if ( !PyArg_ParseTuple( args, "O", &obj ) )
@@ -130,12 +130,41 @@ static PyObject * PySortedArray_toNumPy( PySortedArray * const self, PyObject * 
   return self->sortedArray->toNumPy();
 }
 
+static constexpr char const * PySortedArray_getAccessLevelDocString =
+"get_access_level()\n"
+"--\n\n";
+static PyObject * PySortedArray_getAccessLevel( PySortedArray * const self, PyObject * const args )
+{
+  LVARRAY_UNUSED_VARIABLE( args );
+  VERIFY_NON_NULL_SELF( self );
+  VERIFY_INITIALIZED( self );
+
+  return PyLong_FromLong( self->sortedArray->getAccessLevel() );
+}
+
+static constexpr char const * PySortedArray_setAccessLevelDocString =
+"set_access_level()\n"
+"--\n\n";
+static PyObject * PySortedArray_setAccessLevel( PySortedArray * const self, PyObject * const args )
+{
+  VERIFY_NON_NULL_SELF( self );
+  VERIFY_INITIALIZED( self );
+
+  int newAccessLevel;
+  if ( !PyArg_ParseTuple( args, "i", &newAccessLevel ) )
+  { return nullptr; }
+  self->sortedArray->setAccessLevel( newAccessLevel );
+  Py_RETURN_NONE;
+}
+
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
 static PyMethodDef PySortedArray_methods[] = {
   { "insert", (PyCFunction) PySortedArray_insert, METH_VARARGS, PySortedArray_insertDocString },
   { "remove", (PyCFunction) PySortedArray_remove, METH_VARARGS, PySortedArray_removeDocString },
   { "to_numpy", (PyCFunction) PySortedArray_toNumPy, METH_VARARGS, PySortedArray_toNumPyDocString },
+  { "get_access_level", (PyCFunction) PySortedArray_getAccessLevel, METH_NOARGS, PySortedArray_getAccessLevelDocString },
+  { "set_access_level", (PyCFunction) PySortedArray_setAccessLevel, METH_VARARGS, PySortedArray_setAccessLevelDocString },
   { nullptr, nullptr, 0, nullptr } // Sentinel
 };
 

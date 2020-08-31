@@ -52,8 +52,8 @@ public:
   /**
    *
    */
-  PySortedArrayWrapperBase( bool const modifiable ):
-    m_modifiable( modifiable )
+  PySortedArrayWrapperBase( ):
+    m_accessLevel( static_cast< int >( LvArray::python::PyModify::READ_ONLY ) )
   {}
 
   /**
@@ -62,10 +62,16 @@ public:
   virtual ~PySortedArrayWrapperBase() = default;
 
   /**
-   *
+   * @brief Return the access level for the array.
+   * @return the access level for the array.
    */
-  bool modifiable() const
-  { return m_modifiable; }
+  virtual int getAccessLevel() const
+  { return m_accessLevel; }
+
+  /**
+   * @brief Set the access level for the array.
+   */
+  virtual void setAccessLevel( int accessLevel ) = 0;
 
   /**
    *
@@ -95,7 +101,7 @@ public:
   virtual PyObject * toNumPy() = 0;
 
 protected:
-  bool const m_modifiable;
+  int m_accessLevel;
 };
 
 /**
@@ -111,8 +117,8 @@ public:
   /**
    *
    */
-  PySortedArrayWrapper( SortedArray< T, INDEX_TYPE, BUFFER_TYPE > & sortedArray, bool const modify ):
-    PySortedArrayWrapperBase( modify ),
+  PySortedArrayWrapper( SortedArray< T, INDEX_TYPE, BUFFER_TYPE > & sortedArray ):
+    PySortedArrayWrapperBase( ),
     m_sortedArray( sortedArray )
   {}
 
@@ -131,7 +137,6 @@ public:
   virtual std::ptrdiff_t insert( void const * const values,
                                  std::ptrdiff_t const nVals ) final override
   {
-    LVARRAY_ERROR_IF( !m_modifiable, "The SortedArray is not modifiable." );
     T const * const castedValues = reinterpret_cast< T const * >( values );
     return integerConversion< std::ptrdiff_t >( m_sortedArray.insert( castedValues, castedValues + nVals ) );
   }
@@ -140,7 +145,6 @@ public:
   virtual std::ptrdiff_t remove( void const * const values,
                                  std::ptrdiff_t const nVals ) final override
   {
-    LVARRAY_ERROR_IF( !m_modifiable, "The SortedArray is not modifiable." );
     T const * const castedValues = reinterpret_cast< T const * >( values );
     return integerConversion< std::ptrdiff_t >( m_sortedArray.remove( castedValues, castedValues + nVals ) );
   }
@@ -151,6 +155,15 @@ public:
     INDEX_TYPE const dims = m_sortedArray.size();
     INDEX_TYPE const strides = 1;
     return createNumPyArray( m_sortedArray.data(), false, 1, &dims, &strides );
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  virtual void setAccessLevel( int accessLevel ) final override
+  {
+    if ( accessLevel >= static_cast< int >( LvArray::python::PyModify::RESIZEABLE ) ){
+      // touch
+    }
+    m_accessLevel = accessLevel;
   }
 
 private:
@@ -168,10 +181,9 @@ PyObject * create( std::unique_ptr< internal::PySortedArrayWrapperBase > && arra
  *
  */
 template< typename T, typename INDEX_TYPE, template< typename > class BUFFER_TYPE >
-PyObject * create( SortedArray< T, INDEX_TYPE, BUFFER_TYPE > & array, bool const modify )
+PyObject * create( SortedArray< T, INDEX_TYPE, BUFFER_TYPE > & array )
 {
-  array.move( MemorySpace::CPU, modify );
-  return internal::create( std::make_unique< internal::PySortedArrayWrapper< T, INDEX_TYPE, BUFFER_TYPE > >( array, modify ) );
+  return internal::create( std::make_unique< internal::PySortedArrayWrapper< T, INDEX_TYPE, BUFFER_TYPE > >( array ) );
 }
 
 /**
