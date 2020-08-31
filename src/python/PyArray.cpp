@@ -44,8 +44,8 @@ namespace python
 #define VERIFY_INITIALIZED( self ) \
   PYTHON_ERROR_IF( self->array == nullptr, PyExc_RuntimeError, "The PyArray is not initialized.", nullptr )
 
-#define VERIFY_MODIFIABLE( self ) \
-  PYTHON_ERROR_IF( !self->array->modifiable(), PyExc_RuntimeError, "The PyArray is not modifiable.", nullptr )
+#define VERIFY_RESIZEABLE( self ) \
+  PYTHON_ERROR_IF( self->array->getAccessLevel() < static_cast< int >( LvArray::python::PyModify::RESIZEABLE ), PyExc_RuntimeError, "The PyArray is not resizeable.", nullptr )
 
 struct PyArray
 {
@@ -111,6 +111,7 @@ static PyObject * PyArray_setSingleParameterResizeIndex( PyArray * const self, P
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
+  VERIFY_RESIZEABLE( self );
 
   int dim;
   if ( !PyArg_ParseTuple( args, "i", &dim ) )
@@ -136,7 +137,7 @@ static PyObject * PyArray_resize( PyArray * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
-  VERIFY_MODIFIABLE( self );
+  VERIFY_RESIZEABLE( self );
 
   long newSize;
   if ( !PyArg_ParseTuple( args, "l", &newSize ) )
@@ -161,7 +162,7 @@ static PyObject * PyArray_resizeAll( PyArray * const self, PyObject * const args
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
-  VERIFY_MODIFIABLE( self );
+  VERIFY_RESIZEABLE( self );
 
   PyObject * obj;
   if ( !PyArg_ParseTuple( args, "O", &obj ) )
@@ -201,6 +202,34 @@ static PyObject * PyArray_toNumPy( PyArray * const self, PyObject * const args )
   return self->array->toNumPy();
 }
 
+static constexpr char const * PyArray_getAccessLevelDocString =
+"get_access_level()\n"
+"--\n\n";
+static PyObject * PyArray_getAccessLevel( PyArray * const self, PyObject * const args )
+{
+  LVARRAY_UNUSED_VARIABLE( args );
+
+  VERIFY_NON_NULL_SELF( self );
+  VERIFY_INITIALIZED( self );
+
+  return PyLong_FromLong( self->array->getAccessLevel() );
+}
+
+static constexpr char const * PyArray_setAccessLevelDocString =
+"set_access_level()\n"
+"--\n\n";
+static PyObject * PyArray_setAccessLevel( PyArray * const self, PyObject * const args )
+{
+  VERIFY_NON_NULL_SELF( self );
+  VERIFY_INITIALIZED( self );
+
+  int newAccessLevel;
+  if ( !PyArg_ParseTuple( args, "i", &newAccessLevel ) )
+  { return nullptr; }
+  self->array->setAccessLevel( newAccessLevel );
+  Py_RETURN_NONE;
+}
+
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
 static PyMethodDef PyArray_methods[] = {
@@ -209,6 +238,8 @@ static PyMethodDef PyArray_methods[] = {
   { "resize", (PyCFunction) PyArray_resize, METH_VARARGS, PyArray_resizeDocString },
   { "resize_all", (PyCFunction) PyArray_resizeAll, METH_VARARGS, PyArray_resizeAllDocString },
   { "to_numpy", (PyCFunction) PyArray_toNumPy, METH_VARARGS, PyArray_toNumPyDocString },
+  { "get_access_level", (PyCFunction) PyArray_getAccessLevel, METH_NOARGS, PyArray_getAccessLevelDocString },
+  { "set_access_level", (PyCFunction) PyArray_setAccessLevel, METH_VARARGS, PyArray_setAccessLevelDocString },
   { nullptr, nullptr, 0, nullptr } // Sentinel
 };
 

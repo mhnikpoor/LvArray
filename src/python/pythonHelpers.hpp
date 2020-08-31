@@ -102,6 +102,13 @@ bool isInstanceOf( PyObject * const obj, PyTypeObject * type );
 
 } // namespace internal
 
+enum class PyModify
+{
+  READ_ONLY = 0,
+  MODIFIABLE = 1,
+  RESIZEABLE = 2,
+};
+
 /**
  * @class PyObjectRef
  * @brief A class that manages an owned Python reference with RAII semantics.

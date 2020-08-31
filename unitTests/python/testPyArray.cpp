@@ -33,56 +33,40 @@ static LvArray::Array< double, 4, RAJA::PERM_KILJ, std::ptrdiff_t, LvArray::Mall
 static PyObject * getArray1DOfInts( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
-
-  int modify;
-  if( !PyArg_ParseTuple( args, "p", &modify ) )
-  { return nullptr; }
-
-  return LvArray::python::create( array1DOfInts, modify );
+  LVARRAY_UNUSED_VARIABLE( args );
+  return LvArray::python::create( array1DOfInts );
 }
 
 static PyObject * getArray1DOfDoubles( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
+  LVARRAY_UNUSED_VARIABLE( args );
 
-  int modify;
-  if( !PyArg_ParseTuple( args, "p", &modify ) )
-  { return nullptr; }
-
-  return LvArray::python::create( array1DOfDoubles, modify );
+  return LvArray::python::create( array1DOfDoubles );
 }
 
 static PyObject * getArray2DIJOfLongs( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
+  LVARRAY_UNUSED_VARIABLE( args );
 
-  int modify;
-  if( !PyArg_ParseTuple( args, "p", &modify ) )
-  { return nullptr; }
-
-  return LvArray::python::create( array2DIJOfLongs, modify );
+  return LvArray::python::create( array2DIJOfLongs );
 }
 
 static PyObject * getArray2DJIOfFloats( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
+  LVARRAY_UNUSED_VARIABLE( args );
 
-  int modify;
-  if( !PyArg_ParseTuple( args, "p", &modify ) )
-  { return nullptr; }
-
-  return LvArray::python::create( array2DJIOfFloats, modify );
+  return LvArray::python::create( array2DJIOfFloats );
 }
 
 static PyObject * getArray4DKILJOfDoubles( PyObject * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( self );
+  LVARRAY_UNUSED_VARIABLE( args );
 
-  int modify;
-  if( !PyArg_ParseTuple( args, "p", &modify ) )
-  { return nullptr; }
-
-  return LvArray::python::create( array4DKILJOfDoubles, modify );
+  return LvArray::python::create( array4DKILJOfDoubles );
 }
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
@@ -91,11 +75,11 @@ BEGIN_ALLOW_DESIGNATED_INITIALIZERS
  * Array of functions and docstrings to export to Python
  */
 static PyMethodDef testPyArrayFuncs[] = {
-  {"get_array1d_int", getArray1DOfInts, METH_VARARGS, ""},
-  {"get_array1d_double", getArray1DOfDoubles, METH_VARARGS, ""},
-  {"get_array2d_ij_long", getArray2DIJOfLongs, METH_VARARGS, ""},
-  {"get_array2d_ji_float", getArray2DJIOfFloats, METH_VARARGS, ""},
-  {"get_array4d_kilj_double", getArray4DKILJOfDoubles, METH_VARARGS, ""},
+  {"get_array1d_int", getArray1DOfInts, METH_NOARGS, ""},
+  {"get_array1d_double", getArray1DOfDoubles, METH_NOARGS, ""},
+  {"get_array2d_ij_long", getArray2DIJOfLongs, METH_NOARGS, ""},
+  {"get_array2d_ji_float", getArray2DJIOfFloats, METH_NOARGS, ""},
+  {"get_array4d_kilj_double", getArray4DKILJOfDoubles, METH_NOARGS, ""},
   {nullptr, nullptr, 0, nullptr}        /* Sentinel */
 };
 

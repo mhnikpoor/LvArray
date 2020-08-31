@@ -23,6 +23,7 @@
 // Source includes
 #include "python.hpp"
 #include "../limits.hpp"
+#include "pythonHelpers.hpp"
 
 namespace LvArray
 {

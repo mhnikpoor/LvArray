@@ -5,10 +5,12 @@ import unittest
 import numpy as np
 from numpy import testing
 
+import pylvarray
 from testPyArray import get_array1d_int, get_array1d_double, get_array2d_ij_long, get_array2d_ji_float, get_array4d_kilj_double
 
 
 def clear(arr):
+    arr.set_access_level(pylvarray.RESIZEABLE)
     view = arr.to_numpy()
     view[:] = view.dtype.type(0)
 
@@ -20,30 +22,52 @@ class ArrayTests(unittest.TestCase):
 
     def setUp(self):
         for getter in self.lvarrays:
-            view = getter(True)
+            view = getter()
             clear(view)
 
     def test_modification(self):
         for getter in self.lvarrays:
-            arr = getter(True)
+            arr = getter()
             clear(arr)
             view = arr.to_numpy()
             testing.assert_array_equal(view, np.zeros_like(view))
-            testing.assert_array_equal(view, getter(False).to_numpy())
+            testing.assert_array_equal(view, getter().to_numpy())
             view[:] = view.dtype.type(5)
             testing.assert_array_equal(view, np.ones_like(view) * 5)
-            testing.assert_array_equal(view, getter(False).to_numpy())
+            testing.assert_array_equal(view, getter().to_numpy())
 
     def test_modification_read_only(self):
         """Test that calling insert or remove on a read only SortedArray raises an exception."""
         for getter in self.lvarrays:
-            view = getter(False).to_numpy()
+            arr = getter()
+            arr.set_access_level(pylvarray.READ_ONLY)
+            view = arr.to_numpy()
+            self.assertFalse(view.flags.writeable)
+            arr.set_access_level(pylvarray.MODIFIABLE)
+            view = arr.to_numpy()
+            self.assertTrue(view.flags.writeable)
+            arr.set_access_level(pylvarray.RESIZEABLE)
+            self.assertEqual(arr.get_access_level(), pylvarray.RESIZEABLE)
+            view = arr.to_numpy()
+            self.assertTrue(view.flags.writeable)
+            arr.set_access_level(pylvarray.READ_ONLY)
+            self.assertEqual(arr.get_access_level(), pylvarray.READ_ONLY)
+            view = arr.to_numpy()
             with self.assertRaisesRegex(ValueError, "read-only"):
                 view[0] = view.dtype.type(6)
 
+    def test_resize_all_not_resizeable(self):
+        for getter in self.lvarrays:
+            arr = getter()
+            arr.set_access_level(pylvarray.MODIFIABLE)
+            original_dims = arr.to_numpy().shape
+            with self.assertRaisesRegex(RuntimeError, "resizeable"):
+                arr.resize_all(original_dims)
+
     def test_resize_all(self):
         for getter in self.lvarrays:
-            arr = getter(True)
+            arr = getter()
+            arr.set_access_level(pylvarray.RESIZEABLE)
             original_dims = arr.to_numpy().shape
             new_dims = np.array(original_dims, dtype=np.int32) * 2
             arr.resize_all(new_dims)
@@ -51,7 +75,8 @@ class ArrayTests(unittest.TestCase):
 
     def test_resize_one_dim_bad_input(self):
         for getter in self.lvarrays:
-            arr = getter(True)
+            arr = getter()
+            arr.set_access_level(pylvarray.RESIZEABLE)
             arr.set_single_parameter_resize_index(0)
             self.assertEqual(arr.get_single_parameter_resize_index(), 0)
             with self.assertRaisesRegex(ValueError, "out of bounds"):
@@ -59,7 +84,8 @@ class ArrayTests(unittest.TestCase):
 
     def test_resize_one_dim(self):
         for getter in self.lvarrays:
-            arr = getter(True)
+            arr = getter()
+            arr.set_access_level(pylvarray.RESIZEABLE)
             for dim in range(len(arr.to_numpy().shape)):
                 arr.set_single_parameter_resize_index(dim)
                 for resize_val in (100, 75, 76):

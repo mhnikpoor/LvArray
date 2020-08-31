@@ -17,7 +17,7 @@
  */
 
 /**
- * @file 
+ * @file
  */
 
 #pragma once
@@ -29,6 +29,7 @@
 #include "../Macros.hpp"
 #include "../limits.hpp"
 #include "../output.hpp"
+#include "pythonHelpers.hpp"
 
 // System includes
 #include <string>
@@ -55,8 +56,8 @@ public:
    * @param modifiable If the array can be modified.
    * @details If @p modifiable is @c false then the array cannot be modified in any way.
    */
-  PyArrayWrapperBase( bool const modifiable ):
-    m_modifiable( modifiable )
+  PyArrayWrapperBase():
+    m_accessLevel( static_cast< int >( LvArray::python::PyModify::READ_ONLY ) )
   {}
 
   /**
@@ -68,8 +69,10 @@ public:
    * @brief Return @c true iff the array can be modified.
    * @return @c true iff the array can be modified.
    */
-  bool modifiable() const
-  { return m_modifiable; }
+  virtual int getAccessLevel() const
+  { return m_accessLevel; }
+
+  virtual void setAccessLevel( int accessLevel ) = 0;
 
   /**
    * @brief Return a string representing the underlying Array type.
@@ -121,7 +124,7 @@ public:
 protected:
 
   /// If the array can be modified.
-  bool const m_modifiable;
+  int m_accessLevel;
 };
 
 /**
@@ -149,8 +152,8 @@ public:
    * @param array The array to wrap.
    * @param modify If the array is modifiable.
    */
-  PyArrayWrapper( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & array, bool const modify ):
-    PyArrayWrapperBase( modify ),
+  PyArrayWrapper( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & array ):
+    PyArrayWrapperBase( ),
     m_array( array )
   {}
 
@@ -188,6 +191,14 @@ public:
     m_array.resize( NDIM, dims );
   }
 
+  virtual void setAccessLevel( int accessLevel ) final override
+  {
+    if ( accessLevel >= static_cast< int >( LvArray::python::PyModify::RESIZEABLE ) ){
+      // touch
+    }
+    m_accessLevel = accessLevel;
+  }
+
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual PyObject * toNumPy() const final override
   { return toNumPyImpl(); };
@@ -200,7 +211,7 @@ private:
   template< typename _T=T >
   std::enable_if_t< !std::is_same< _T, std::string >::value, PyObject * >
   toNumPyImpl() const
-  { return createNumPyArray( m_array.data(), m_modifiable, NDIM, m_array.dims(), m_array.strides() ); }
+  { return createNumPyArray( m_array.data(), m_accessLevel >= static_cast< int >( LvArray::python::PyModify::MODIFIABLE ), NDIM, m_array.dims(), m_array.strides() ); }
 
   /**
    * @brief Create a NumPy ndarray for an Array that contains std::strings.
@@ -237,12 +248,10 @@ template< typename T,
           typename PERM,
           typename INDEX_TYPE,
           template< typename > class BUFFER_TYPE >
-PyObject * create( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & array, bool const modify )
+PyObject * create( Array< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE > & array )
 {
-  array.move( MemorySpace::CPU, modify );
-
   using WrapperType = internal::PyArrayWrapper< T, NDIM, PERM, INDEX_TYPE, BUFFER_TYPE >;
-  return internal::create( std::make_unique< WrapperType >( array, modify ) );
+  return internal::create( std::make_unique< WrapperType >( array ) );
 }
 
 /**
