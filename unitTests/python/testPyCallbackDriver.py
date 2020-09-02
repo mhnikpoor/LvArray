@@ -31,6 +31,7 @@ class LvArrayCallbackTests(unittest.TestCase):
         def callback(arg):
             self.assertTrue(isinstance(arg, pylvarray.SortedArray))
             dtype = arg.to_numpy().dtype.type
+            arg.set_access_level(pylvarray.RESIZEABLE)
             for i in range(10):
                 arg.insert(dtype(i))
                 self.assertIn(i, arg.to_numpy())

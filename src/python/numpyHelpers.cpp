@@ -139,11 +139,8 @@ bool import_array_wrapper()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-PyObject * create( std::string const & value, bool const modify )
-{
-  LVARRAY_UNUSED_VARIABLE( modify );
-  return PyUnicode_FromString( value.c_str() );
-}
+PyObject * create( std::string const & value )
+{ return PyUnicode_FromString( value.c_str() ); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t >

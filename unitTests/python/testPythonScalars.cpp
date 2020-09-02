@@ -42,7 +42,7 @@ get_schar( PyObject *self, PyObject *args )
 {
     LVARRAY_UNUSED_VARIABLE( self );
     LVARRAY_UNUSED_VARIABLE( args );
-    return LvArray::python::create( numpy_schar, true );
+    return LvArray::python::create( numpy_schar );
 }
 
 /**
@@ -53,7 +53,7 @@ get_ulong( PyObject *self, PyObject *args )
 {
     LVARRAY_UNUSED_VARIABLE( self );
     LVARRAY_UNUSED_VARIABLE( args );
-    return LvArray::python::create( numpy_ulong, true );
+    return LvArray::python::create( numpy_ulong );
 }
 
 /**
@@ -64,7 +64,7 @@ get_longdouble( PyObject *self, PyObject *args )
 {
     LVARRAY_UNUSED_VARIABLE( self );
     LVARRAY_UNUSED_VARIABLE( args );
-    return LvArray::python::create( numpy_longdouble, true );
+    return LvArray::python::create( numpy_longdouble );
 }
 
 /**
@@ -75,7 +75,7 @@ get_ushort( PyObject *self, PyObject *args )
 {
     LVARRAY_UNUSED_VARIABLE( self );
     LVARRAY_UNUSED_VARIABLE( args );
-    return LvArray::python::create( numpy_ushort, true );
+    return LvArray::python::create( numpy_ushort );
 }
 
 /**
@@ -86,7 +86,7 @@ get_short_const( PyObject *self, PyObject *args )
 {
     LVARRAY_UNUSED_VARIABLE( self );
     LVARRAY_UNUSED_VARIABLE( args );
-    return LvArray::python::create( numpy_short_const, true );
+    return LvArray::python::create( numpy_short_const );
 }
 
 /**
@@ -97,7 +97,7 @@ get_bool( PyObject *self, PyObject *args )
 {
     LVARRAY_UNUSED_VARIABLE( self );
     LVARRAY_UNUSED_VARIABLE( args );
-    return LvArray::python::create( numpy_bool, true );
+    return LvArray::python::create( numpy_bool );
 }
 
 /**
@@ -108,7 +108,7 @@ get_char16( PyObject *self, PyObject *args )
 {
     LVARRAY_UNUSED_VARIABLE( self );
     LVARRAY_UNUSED_VARIABLE( args );
-    return LvArray::python::create( numpy_char16, true );
+    return LvArray::python::create( numpy_char16 );
 }
 
 /**

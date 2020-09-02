@@ -57,7 +57,7 @@ public:
      int i = 0;
      typeManipulation::forEachArg( [&i, &pyArgs]( auto & arg )
      {
-       pyArgs[ i ] = create( arg, true );
+       pyArgs[ i ] = create( arg );
        ++i;
      }, args ... );
      internal::callPyFunc( m_function, pyArgs, argc );

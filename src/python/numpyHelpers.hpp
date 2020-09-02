@@ -123,14 +123,14 @@ createNumPyArray( T * const data,
  */
 template< typename T >
 std::enable_if_t< internal::canExportToNumpy< T >, PyObject * >
-create( T & value, bool const modify )
+create( T & value )
 {
   std::ptrdiff_t dims = 1;
   std::ptrdiff_t strides = 1;
 
   return internal::createNumpyArrayImpl( const_cast< void * >( static_cast< void const * >( &value ) ),
                                          std::type_index( typeid( T ) ),
-                                         std::is_const< T >::value || !modify,
+                                         std::is_const< T >::value,
                                          1,
                                          &dims,
                                          &strides );
@@ -139,7 +139,7 @@ create( T & value, bool const modify )
 /**
  *
  */
-PyObject * create( std::string const & value, bool const modify );
+PyObject * create( std::string const & value );
 
 /**
  *
