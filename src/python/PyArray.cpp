@@ -52,7 +52,8 @@ struct PyArray
   PyObject_HEAD
 
   static constexpr char const * docString =
-  "A Python interface to LvArray::Array.";
+  "A Python interface to an LvArray::Array. Cannot be constructed in Python.\n\n"
+  "New instances must be returned from C modules.";
 
   internal::PyArrayWrapperBase * array;
 };
@@ -82,14 +83,9 @@ static PyObject * PyArray_repr( PyObject * const obj )
 }
 
 static constexpr char const * PyArray_getSingleParameterResizeIndexDocString =
-"get_single_parameter_resize_index()\n"
+"get_single_parameter_resize_index(self)\n"
 "--\n\n"
-"Return the default resize dimension.\n"
-"\n"
-"Returns\n"
-"_______\n"
-"int\n"
-"    The default resize dimension.";
+"Return the default resize dimension.\n";
 static PyObject * PyArray_getSingleParameterResizeIndex( PyArray * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -100,13 +96,9 @@ static PyObject * PyArray_getSingleParameterResizeIndex( PyArray * const self, P
 }
 
 static constexpr char const * PyArray_setSingleParameterResizeIndexDocString =
-"set_single_parameter_resize_index(dim)\n"
+"set_single_parameter_resize_index(self, dim)\n"
 "--\n\n"
-"Set the default resize dimension.\n"
-"\n"
-"Returns\n"
-"_______\n"
-"None";
+"Set the default resize dimension.";
 static PyObject * PyArray_setSingleParameterResizeIndex( PyArray * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -126,13 +118,9 @@ static PyObject * PyArray_setSingleParameterResizeIndex( PyArray * const self, P
 }
 
 static constexpr char const * PyArray_resizeDocString =
-"resize(new_dim)\n"
+"resize(self, size)\n"
 "--\n\n"
-"Resize the default dimension.\n"
-"\n"
-"Returns\n"
-"_______\n"
-"None";
+"Resize the default dimension.\n";
 static PyObject * PyArray_resize( PyArray * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -151,13 +139,10 @@ static PyObject * PyArray_resize( PyArray * const self, PyObject * const args )
 }
 
 static constexpr char const * PyArray_resizeAllDocString =
-"resize_all(new_dims)\n"
+"resize_all(self, new_dims)\n"
 "--\n\n"
-"Resize all the dimensions.\n"
-"\n"
-"Returns\n"
-"_______\n"
-"None";
+"Resize all of the dimensions, discarding values.\n\n"
+":param new_dims: an itererable of integers.";
 static PyObject * PyArray_resizeAll( PyArray * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -184,14 +169,11 @@ static PyObject * PyArray_resizeAll( PyArray * const self, PyObject * const args
 }
 
 static constexpr char const * PyArray_toNumPyDocString =
-"to_numpy()\n"
+"to_numpy(self)\n"
 "--\n\n"
-"Return a NumPy ndarray representing a shallow copy of the LvArray::Array.\n"
-"\n"
-"Returns\n"
-"_______\n"
-"NumPy ndarray\n"
-"    A shallow copy of the LvArray::Array.";
+"Return a Numpy view of the instance.\n\n"
+"The view can be modified if permissions\n"
+"have been set to ``MODIFIABLE`` or ``RESIZEABLE``.";
 static PyObject * PyArray_toNumPy( PyArray * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -203,8 +185,9 @@ static PyObject * PyArray_toNumPy( PyArray * const self, PyObject * const args )
 }
 
 static constexpr char const * PyArray_getAccessLevelDocString =
-"get_access_level()\n"
-"--\n\n";
+"get_access_level(self)\n"
+"--\n\n"
+"Return the read/write/resize permissions for the array.";
 static PyObject * PyArray_getAccessLevel( PyArray * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -216,17 +199,20 @@ static PyObject * PyArray_getAccessLevel( PyArray * const self, PyObject * const
 }
 
 static constexpr char const * PyArray_setAccessLevelDocString =
-"set_access_level()\n"
-"--\n\n";
+"set_access_level(self, level, space=None)\n"
+"--\n\n"
+"Set read/write/resize permissions for the instance.\n\n"
+"If ``space`` is provided, move the instance to that space.";
 static PyObject * PyArray_setAccessLevel( PyArray * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
 
   int newAccessLevel;
-  if ( !PyArg_ParseTuple( args, "i", &newAccessLevel ) )
+  int newSpace = static_cast< int >( LvArray::MemorySpace::NONE );
+  if ( !PyArg_ParseTuple( args, "i|i", &newAccessLevel, &newSpace ) )
   { return nullptr; }
-  self->array->setAccessLevel( newAccessLevel );
+  self->array->setAccessLevel( newAccessLevel, newSpace );
   Py_RETURN_NONE;
 }
 

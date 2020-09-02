@@ -71,7 +71,7 @@ public:
   /**
    * @brief Set the access level for the array.
    */
-  virtual void setAccessLevel( int accessLevel ) = 0;
+  virtual void setAccessLevel( int accessLevel, int memorySpace ) = 0;
 
   /**
    *
@@ -158,8 +158,9 @@ public:
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  virtual void setAccessLevel( int accessLevel ) final override
+  virtual void setAccessLevel( int accessLevel, int memorySpace ) final override
   {
+    LVARRAY_UNUSED_VARIABLE( memorySpace );
     if ( accessLevel >= static_cast< int >( LvArray::python::PyModify::RESIZEABLE ) ){
       // touch
     }

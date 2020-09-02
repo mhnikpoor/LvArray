@@ -52,6 +52,7 @@ struct PySortedArray
   PyObject_HEAD
 
   static constexpr char const * docString =
+  "Represents a LvArray::SortedArray instance.\n\n"
   "";
 
   internal::PySortedArrayWrapperBase * sortedArray;
@@ -76,7 +77,11 @@ static PyObject * PySortedArray_repr( PyObject * const obj )
 }
 
 static constexpr char const * PySortedArray_insertDocString =
-"";
+"insert(self, values)\n"
+"--\n\n"
+"Insert one or more values into the array.\n"
+"The object passed in will be converted to a 1D Numpy array of the same dtype\n"
+"as the underlying instance, raising an exception if the conversion cannot be made safely.";
 static PyObject * PySortedArray_insert( PySortedArray * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -97,7 +102,11 @@ static PyObject * PySortedArray_insert( PySortedArray * const self, PyObject * c
 }
 
 static constexpr char const * PySortedArray_removeDocString =
-"";
+"remove(self, values)\n"
+"--\n\n"
+"Remove one or more values from the array.\n"
+"The object passed in will be converted to a 1D numpy array of the same dtype\n"
+"as the underlying instance, raising an exception if the conversion cannot be made safely.";
 static PyObject * PySortedArray_remove( PySortedArray * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -119,7 +128,9 @@ static PyObject * PySortedArray_remove( PySortedArray * const self, PyObject * c
 
 
 static constexpr char const * PySortedArray_toNumPyDocString =
-"";
+"to_numpy(self)\n"
+"--\n\n"
+"Return a read-only Numpy view of the instance.";
 static PyObject * PySortedArray_toNumPy( PySortedArray * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -131,8 +142,9 @@ static PyObject * PySortedArray_toNumPy( PySortedArray * const self, PyObject * 
 }
 
 static constexpr char const * PySortedArray_getAccessLevelDocString =
-"get_access_level()\n"
-"--\n\n";
+"get_access_level(self)\n"
+"--\n\n"
+"Return the read/write/resize permissions for the instance.";
 static PyObject * PySortedArray_getAccessLevel( PySortedArray * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -143,17 +155,22 @@ static PyObject * PySortedArray_getAccessLevel( PySortedArray * const self, PyOb
 }
 
 static constexpr char const * PySortedArray_setAccessLevelDocString =
-"set_access_level()\n"
-"--\n\n";
+"set_access_level(self, level, space=None)\n"
+"--\n\n"
+"Set read/write/resize permissions for the instance.\n"
+"The ``MODIFIABLE`` permission has no effect, because the data\n"
+"must be maintained in sorted order.\n"
+"If ``space`` is provided, move the instance to that space.";
 static PyObject * PySortedArray_setAccessLevel( PySortedArray * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
 
   int newAccessLevel;
-  if ( !PyArg_ParseTuple( args, "i", &newAccessLevel ) )
+  int newSpace = static_cast< int >( LvArray::MemorySpace::NONE );
+  if ( !PyArg_ParseTuple( args, "i|i", &newAccessLevel, &newSpace ) )
   { return nullptr; }
-  self->sortedArray->setAccessLevel( newAccessLevel );
+  self->sortedArray->setAccessLevel( newAccessLevel, newSpace );
   Py_RETURN_NONE;
 }
 

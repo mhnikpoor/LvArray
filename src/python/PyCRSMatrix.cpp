@@ -52,7 +52,7 @@ struct PyCRSMatrix
   PyObject_HEAD
 
   static constexpr char const * docString =
-  "";
+  "Represents a LvArray::CRSMatrix instance.";
 
   internal::PyCRSMatrixWrapperBase * matrix;
 };
@@ -76,7 +76,9 @@ static PyObject * PyCRSMatrix_repr( PyObject * const obj )
 }
 
 static constexpr char const * PyCRSMatrix_numRowsDocString =
-"";
+"num_rows(self)\n"
+"--\n\n"
+"Return the number of rows in the matrix.";
 static PyObject * PyCRSMatrix_numRows( PyCRSMatrix * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -87,7 +89,9 @@ static PyObject * PyCRSMatrix_numRows( PyCRSMatrix * const self, PyObject * cons
 }
 
 static constexpr char const * PyCRSMatrix_numColumnsDocString =
-"";
+"num_columns(self)\n"
+"--\n\n"
+"Return the number of columns in the matrix.";
 static PyObject * PyCRSMatrix_numColumns( PyCRSMatrix * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -98,7 +102,8 @@ static PyObject * PyCRSMatrix_numColumns( PyCRSMatrix * const self, PyObject * c
 }
 
 static constexpr char const * PyCRSMatrix_getColumnsDocString =
-"";
+"get_columns(self, row)\n"
+"--\n\n";
 static PyObject * PyCRSMatrix_getColumns( PyCRSMatrix * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -116,7 +121,8 @@ static PyObject * PyCRSMatrix_getColumns( PyCRSMatrix * const self, PyObject * c
 }
 
 static constexpr char const * PyCRSMatrix_getEntriesDocString =
-"";
+"get_entries(self, row)\n"
+"--\n\n";
 static PyObject * PyCRSMatrix_getEntries( PyCRSMatrix * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -134,7 +140,9 @@ static PyObject * PyCRSMatrix_getEntries( PyCRSMatrix * const self, PyObject * c
 }
 
 static constexpr char const * PyCRSMatrix_toSciPyDocString =
-"";
+"to_scipy(self)\n"
+"--\n\n"
+"Return a ``scipy.sparse.csr_matrix`` view of the instance.";
 static PyObject * PyCRSMatrix_toSciPy( PyCRSMatrix * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -171,7 +179,8 @@ static PyObject * PyCRSMatrix_toSciPy( PyCRSMatrix * const self, PyObject * cons
 }
 
 static constexpr char const * PyCRSMatrix_resizeDocString =
-"";
+"resize(self, num_rows num_cols, initial_row_capacity=0)\n"
+"--\n\n";
 static PyObject * PyCRSMatrix_resize( PyCRSMatrix * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -191,7 +200,8 @@ static PyObject * PyCRSMatrix_resize( PyCRSMatrix * const self, PyObject * const
 }
 
 static constexpr char const * PyCRSMatrix_compressDocString =
-"";
+"compress(self)\n"
+"--\n\n";
 static PyObject * PyCRSMatrix_compress( PyCRSMatrix * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -205,7 +215,8 @@ static PyObject * PyCRSMatrix_compress( PyCRSMatrix * const self, PyObject * con
 }
 
 static constexpr char const * PyCRSMatrix_insertNonZerosDocString =
-"";
+"insert_nonzeros(self, row, columns, entries)\n"
+"--\n\n";
 static PyObject * PyCRSMatrix_insertNonZeros( PyCRSMatrix * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -240,7 +251,8 @@ static PyObject * PyCRSMatrix_insertNonZeros( PyCRSMatrix * const self, PyObject
 }
 
 static constexpr char const * PyCRSMatrix_removeNonZerosDocString =
-"";
+"remove_nonzeros(self, row, columns)\n"
+"--\n\n";
 static PyObject * PyCRSMatrix_removeNonZeros( PyCRSMatrix * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -268,7 +280,8 @@ static PyObject * PyCRSMatrix_removeNonZeros( PyCRSMatrix * const self, PyObject
 }
 
 static constexpr char const * PyCRSMatrix_addToRowDocString =
-"";
+"add_to_row(self, row, columns, values)\n"
+"--\n\n";
 static PyObject * PyCRSMatrix_addToRow( PyCRSMatrix * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -302,8 +315,9 @@ static PyObject * PyCRSMatrix_addToRow( PyCRSMatrix * const self, PyObject * con
 }
 
 static constexpr char const * PyCRSMatrix_getAccessLevelDocString =
-"get_access_level()\n"
-"--\n\n";
+"get_access_level(self)\n"
+"--\n\n"
+"Return the read/write/resize permissions for the instance.";
 static PyObject * PyCRSMatrix_getAccessLevel( PyCRSMatrix * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -314,17 +328,20 @@ static PyObject * PyCRSMatrix_getAccessLevel( PyCRSMatrix * const self, PyObject
 }
 
 static constexpr char const * PyCRSMatrix_setAccessLevelDocString =
-"set_access_level()\n"
-"--\n\n";
+"set_access_level(self, level, space=None)\n"
+"--\n\n"
+"Set read/write/resize permissions for the instance. "
+"If ``space`` is provided, move the instance to that space.";
 static PyObject * PyCRSMatrix_setAccessLevel( PyCRSMatrix * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
   VERIFY_INITIALIZED( self );
 
   int newAccessLevel;
-  if ( !PyArg_ParseTuple( args, "i", &newAccessLevel ) )
+  int newSpace = static_cast< int >( LvArray::MemorySpace::NONE );
+  if ( !PyArg_ParseTuple( args, "i|i", &newAccessLevel, &newSpace ) )
   { return nullptr; }
-  self->matrix->setAccessLevel( newAccessLevel );
+  self->matrix->setAccessLevel( newAccessLevel, newSpace );
   Py_RETURN_NONE;
 }
 

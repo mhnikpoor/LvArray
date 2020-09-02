@@ -38,7 +38,12 @@ static PyMethodDef LvArrayFuncs[] = {
 };
 
 static constexpr char const * LvArrayDocString =
-"";
+"Manipulate LvArray objects from Python.\n\n"
+"This module provides classes for manipulating LvArray C++ classes from Python.\n"
+"Instances of the Python classes may not be constructed in Python;\n"
+"an existing LvArray object must be\n"
+"created in C++ and then converted to one of these Python classes."
+;
 
 /**
  * Initialize the module object for Python with the exported functions
@@ -64,6 +69,14 @@ static bool addConstants( PyObject * module )
     PYTHON_ERROR_IF( PyModule_AddIntConstant( module, pair.second, pair.first ), PyExc_RuntimeError,
                      "couldn't add constant", false );
   }
+
+  PYTHON_ERROR_IF( PyModule_AddIntConstant( module, "CPU", static_cast< long >( LvArray::MemorySpace::CPU ) ), PyExc_RuntimeError,
+                   "couldn't add constant", false );
+
+  #if defined(USE_CUDA)
+    PYTHON_ERROR_IF( PyModule_AddIntConstant( module, "GPU", static_cast< long >( LvArray::MemorySpace::GPU ) ), PyExc_RuntimeError,
+                     "couldn't add constant", false );
+  #endif
 
   return true;
 }

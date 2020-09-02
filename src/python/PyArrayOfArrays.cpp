@@ -52,7 +52,12 @@ struct PyArrayOfArrays
   PyObject_HEAD
 
   static constexpr char const * docString =
-  "Array of arrays";
+  "Python interface to a LvArray::ArrayOfArrays instance.\n\n"
+  "Supports Python's sequence protocol, with the addition of\n"
+  "deleting subsets with ``del arr[i]`` syntax.\n"
+  "An array fetched with ``[]`` is returned as a Numpy view.\n"
+  "The built-in ``len()`` function will return the number of arrays in the instance.\n"
+  "Iterating over an instance will yield a Numpy view of each array.";
 
   internal::PyArrayOfArraysWrapperBase * arrayOfArrays;
 };
@@ -125,7 +130,11 @@ static PyObject * PyArrayOfArrays_sq_repeat( PyArrayOfArrays * self, Py_ssize_t 
 }
 
 static constexpr char const * PyArrayOfArrays_insertIntoDocString =
-"";
+"insert_into(self, array, index, values)\n"
+"--\n\n"
+"Insert ``values`` into the subarray ``array`` at position ``index``.\n"
+"``values`` will be converted to a 1D numpy array of the same dtype\n"
+"as the underlying instance, raising an exception if the conversion cannot be made safely.";
 static PyObject * PyArrayOfArrays_insertIntoArray( PyArrayOfArrays * self, PyObject * args ){
   VERIFY_RESIZEABLE( self );
   long long array, index;
@@ -146,7 +155,11 @@ static PyObject * PyArrayOfArrays_insertIntoArray( PyArrayOfArrays * self, PyObj
 }
 
 static constexpr char const * PyArrayOfArrays_insertDocString =
-"";
+"insert(self, position, values)\n"
+"--\n\n"
+"Insert a new array consisting of ``values`` at a specific position.\n"
+"``values`` will be converted to a 1D numpy array of the same dtype\n"
+"as the underlying instance, raising an exception if the conversion cannot be made safely.";
 static PyObject * PyArrayOfArrays_insert( PyArrayOfArrays * self, PyObject * args ){
   VERIFY_RESIZEABLE( self );
   long long index;
@@ -166,7 +179,9 @@ static PyObject * PyArrayOfArrays_insert( PyArrayOfArrays * self, PyObject * arg
 }
 
 static constexpr char const * PyArrayOfArrays_eraseFromDocString =
-"";
+"erase_from(self, array, index)\n"
+"--\n\n"
+"Remove the value at ``index`` in the subarray ``array``.";
 static PyObject * PyArrayOfArrays_eraseFrom( PyArrayOfArrays * self, PyObject * args ){
   VERIFY_RESIZEABLE( self );
   long long index, begin;
@@ -182,8 +197,9 @@ static PyObject * PyArrayOfArrays_eraseFrom( PyArrayOfArrays * self, PyObject * 
 }
 
 static constexpr char const * PyArrayOfArrays_getAccessLevelDocString =
-"get_access_level()\n"
-"--\n\n";
+"get_access_level(self)\n"
+"--\n\n"
+"Return the read/write/resize permissions for the instance.";
 static PyObject * PyArrayOfArrays_getAccessLevel( PyArrayOfArrays * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -195,8 +211,9 @@ static PyObject * PyArrayOfArrays_getAccessLevel( PyArrayOfArrays * const self, 
 }
 
 static constexpr char const * PyArrayOfArrays_setAccessLevelDocString =
-"set_access_level()\n"
-"--\n\n";
+"set_access_level(self, level)\n"
+"--\n\n"
+"Set read/write/resize permissions for the instance.";
 static PyObject * PyArrayOfArrays_setAccessLevel( PyArrayOfArrays * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );

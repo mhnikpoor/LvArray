@@ -52,7 +52,12 @@ struct PyArrayOfSets
   PyObject_HEAD
 
   static constexpr char const * docString =
-  "Array of arrays";
+  "Python interface to a LvArray::ArrayOfSets instance.\n\n"
+  "Supports Python's sequence protocol, with the addition of\n"
+  "deleting subsets with ``del arr[i]`` syntax.\n"
+  "A set fetched with ``[]`` is returned as a read-only Numpy view.\n"
+  "The built-in ``len()`` function will return the number of sets in the instance.\n"
+  "Iterating over an instance will yield a Numpy view of each set.";
 
   internal::PyArrayOfSetsWrapperBase * arrayOfSets;
 };
@@ -125,7 +130,9 @@ static PyObject * PyArrayOfSets_sq_repeat( PyArrayOfSets * self, Py_ssize_t args
 }
 
 static constexpr char const * PyArrayOfSets_insertIntoDocString =
-"";
+"insert_into(self, set, values)\n"
+"--\n\n"
+"Insert values into a set";
 static PyObject * PyArrayOfSets_insertIntoSet( PyArrayOfSets * self, PyObject * args ){
   VERIFY_RESIZEABLE( self );
   long long setIndex;
@@ -145,7 +152,9 @@ static PyObject * PyArrayOfSets_insertIntoSet( PyArrayOfSets * self, PyObject * 
 }
 
 static constexpr char const * PyArrayOfSets_insertSetDocString =
-"";
+"insert(self, position, capacity=0)\n"
+"--\n\n"
+"Insert a new set with a starting capacity";
 static PyObject * PyArrayOfSets_insertSet( PyArrayOfSets * self, PyObject * args ){
   VERIFY_RESIZEABLE( self );
   long long index;
@@ -165,7 +174,9 @@ static PyObject * PyArrayOfSets_insertSet( PyArrayOfSets * self, PyObject * args
 }
 
 static constexpr char const * PyArrayOfSets_removeFromSetDocString =
-"";
+"erase_from(self, set_index, values)\n"
+"--\n\n"
+"Erase values from a set.";
 static PyObject * PyArrayOfSets_removeFromSet( PyArrayOfSets * self, PyObject * args ){
   VERIFY_RESIZEABLE( self );
   long long index;
@@ -183,8 +194,9 @@ static PyObject * PyArrayOfSets_removeFromSet( PyArrayOfSets * self, PyObject * 
 }
 
 static constexpr char const * PyArrayOfSets_getAccessLevelDocString =
-"get_access_level()\n"
-"--\n\n";
+"get_access_level(self)\n"
+"--\n\n"
+"Return the read/write/resize permissions for the instance.";
 static PyObject * PyArrayOfSets_getAccessLevel( PyArrayOfSets * const self, PyObject * const args )
 {
   LVARRAY_UNUSED_VARIABLE( args );
@@ -196,8 +208,10 @@ static PyObject * PyArrayOfSets_getAccessLevel( PyArrayOfSets * const self, PyOb
 }
 
 static constexpr char const * PyArrayOfSets_setAccessLevelDocString =
-"set_access_level()\n"
-"--\n\n";
+"set_access_level(self, level)\n"
+"--\n\n"
+"Set read/write/resize permissions for the instance.\n"
+"The ``MODIFIABLE`` permission has no effect.";
 static PyObject * PyArrayOfSets_setAccessLevel( PyArrayOfSets * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
