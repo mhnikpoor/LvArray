@@ -38,7 +38,7 @@ namespace python
 
 bool addPyLvArrayModule(PyObject * module);
 
-IS_VALID_EXPRESSION( CanCreate, T, create( std::declval< T & >(), true ) );
+IS_VALID_EXPRESSION( CanCreate, T, create( std::declval< T & >() ) );
 
 PyObjectRef<> getModule();
 

@@ -17,7 +17,9 @@ import sys
 import shutil
 
 # add path to pylvarray.so
-sys.path.insert(0, os.path.join(os.environ["PWD"].rsplit(os.sep, 2)[0], "lib"))
+sys.path.append(os.path.join(os.environ["PWD"].rsplit(os.sep, 2)[0], "lib"))
+# add path to pylvarray.so when building in GEOSX
+sys.path.append(os.path.join(os.environ["PWD"], "lib"))
 
 # Call doxygen in ReadtheDocs
 read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'

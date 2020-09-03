@@ -1,14 +1,19 @@
+.. _pylvarray:
+
 LvArray in Python
 =================
 Many of the LvArray classes can be accessed and manipulated from Python. 
 However, they cannot be created from Python.
 
 .. warning:: 
-	The `pylvarray` module provides plenty of opportunites to crash Python. 
+	The ``pylvarray`` module provides plenty of opportunites to crash Python. 
 	See the Segmentation Faults section below.
 
 Module Constants
 ----------------
+
+Space Constants
+^^^^^^^^^^^^^^^
 
 The following constants are used to set the space in which an LvArray object lives.
 The object ``pylvarray.GPU`` will only be defined if it is a 
@@ -17,10 +22,16 @@ valid space for the current system.
 .. py:data:: pylvarray.CPU
 .. py:data:: pylvarray.GPU
 
+Permissions Constants
+^^^^^^^^^^^^^^^^^^^^^
+
 The following constants are used to set permissions for an array instance. 
 If an array's permissions are set to ``READ_ONLY``, Numpy views of 
-it will be read-only. If permissions are set to ``MODIFIABLE`` or ``READ_ONLY``,
-the object cannot be resized (or otherwise have its buffer reallocated).
+it cannot be modified. If permissions are set to ``MODIFIABLE``, Numpy views can
+be modified, but the object itself cannot be resized 
+(or otherwise have its buffer reallocated, such as by inserting new elements).
+If permissions are set to ``RESIZEABLE``, Numpy views can be modified, and the object
+may be resized.
 
 .. py:data:: pylvarray.READ_ONLY
 .. py:data:: pylvarray.MODIFIABLE
@@ -50,7 +61,7 @@ to the underlying C++ LvArray object.
 
 	view = my_array.to_numpy()
 	my_array.resize(1000)
-	print(view) # segfault
+	print(view)  # segfault
 
 Destroyed LvArray C++ objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
