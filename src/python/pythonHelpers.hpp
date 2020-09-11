@@ -42,7 +42,7 @@
         __oss << "***** LOCATION: " LOCATION "\n"; \
         __oss << "***** Controlling expression (should be false): " STRINGIZE( EXP ) "\n"; \
         __oss << MSG << "\n"; \
-        __oss << LvArray::system::stackTrace(); \
+        __oss << LvArray::system::stackTrace( true ); \
         PyErr_SetString( TYPE, __oss.str().c_str() ); \
         return RET; \
       } \

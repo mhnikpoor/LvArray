@@ -23,7 +23,6 @@ set( pylvarray_sources
      PyArrayOfSets.cpp
     )
 
-message("adding pylvarray library")
 blt_add_library( NAME             pylvarray
                  SOURCES          ${pylvarray_sources}
                  HEADERS          ${pylvarray_headers}
