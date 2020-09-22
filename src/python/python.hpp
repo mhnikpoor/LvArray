@@ -29,6 +29,7 @@
 #include "PyArrayOfArrays.hpp"
 #include "PyArrayOfSets.hpp"
 #include "PyCRSMatrix.hpp"
+#include "PyFunc.hpp"
 #include "../typeManipulation.hpp"
 
 namespace LvArray

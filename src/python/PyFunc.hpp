@@ -48,7 +48,7 @@ public:
 
   PythonFunction( PyObject * pyfunc ):
     m_function( pyfunc )
-  { Py_INCREF( pyfunc ); }
+  { internal::xincref( pyfunc ); }
 
   void operator()( ARGS ... args )
   {
