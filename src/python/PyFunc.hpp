@@ -55,9 +55,6 @@ public:
   void operator()( ARGS ... args )
   {
     // if an error is already set, don't invoke the callback
-    if ( internal::err() ){
-      return;
-    }
     constexpr std::ptrdiff_t argc = sizeof ... (args);
     PyObject * pyArgs[ argc ];
     std::ptrdiff_t i = 0;
@@ -82,6 +79,9 @@ public:
     }
     // callPyFunc steals all of the pyArgs references
     internal::callPyFunc( m_function, pyArgs, argc );
+    if ( internal::err() ){
+      throw PythonError();
+    }
   }
 private:
   PyObjectRef<> m_function;

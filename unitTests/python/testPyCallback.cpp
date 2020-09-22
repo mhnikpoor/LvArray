@@ -25,8 +25,9 @@ call( PyObject *self, PyObject *args )
     { PyErr_SetString(PyExc_TypeError, "callback attribute must be callable"); return nullptr; }
     //std::function< void( LvArray::SortedArray< long, std::ptrdiff_t, LvArray::MallocBuffer > & ) > func =
     LvArray::python::PythonFunction< LvArray::SortedArray< long, std::ptrdiff_t, LvArray::MallocBuffer > & > func{ callback };
-    func( sortedArrayOfLongs );
-    if ( PyErr_Occurred() != NULL ){
+    try {
+        func( sortedArrayOfLongs );
+    } catch (const LvArray::python::PythonError&) {
         return nullptr;
     }
     Py_RETURN_NONE;

@@ -281,5 +281,16 @@ inline PyObject * create( std::vector< std::string > const & vec, bool const mod
   return createPyListOfStrings( vec.data(), integerConversion< std::ptrdiff_t >( vec.size() ) );
 }
 
+/*
+ * Base class for all C++ exceptions related to Python.
+ * Intended to be thrown when an actual Python exception is raised,
+ * then caught before returning control to Python. When used this
+ * way, it provides an easy way to return control to Python
+ * when a Python exception occurs (instead of e.g. propagating nullptr
+ * all the way back to Python, which is usually how error handling is done).
+ */
+class PythonError: public std::exception
+{};
+
 } // namespace python
 } // namespace LvArray
