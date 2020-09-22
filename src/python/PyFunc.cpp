@@ -32,21 +32,18 @@ namespace python
 namespace internal
 {
 
-void callPyFunc( PyObject * func, PyObject ** args, std::ptrdiff_t argc ){
-  if ( !PyCallable_Check( func ) ){
-    PyErr_SetString( PyExc_TypeError, "object is not callable" );
-    return;
+bool err( void ){
+  if (PyErr_Occurred() != nullptr ){
+    return true;
   }
+  return false;
+}
+
+void callPyFunc( PyObject * func, PyObject ** args, std::ptrdiff_t argc ){
   Py_ssize_t const argc_ssize = static_cast< Py_ssize_t >( argc );
   PyObjectRef<> tup{ PyTuple_New( argc_ssize ) };
   if ( tup == nullptr ){
     return;
-  }
-  for (Py_ssize_t i = 0; i < argc_ssize; ++i)
-  {
-    if ( args[ i ] == nullptr ){
-      return;
-    }
   }
   for (Py_ssize_t i = 0; i < argc_ssize; ++i)
   {

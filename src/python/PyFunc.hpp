@@ -37,6 +37,8 @@ namespace python
 namespace internal
 {
 
+bool err( void );
+
 void callPyFunc( PyObject * func, PyObject ** args, std::ptrdiff_t argc );
 
 } // namespace internal
@@ -52,18 +54,37 @@ public:
 
   void operator()( ARGS ... args )
   {
-     constexpr std::ptrdiff_t argc = sizeof ... (args);
-     PyObject * pyArgs[ argc ];
-     int i = 0;
-     typeManipulation::forEachArg( [&i, &pyArgs]( auto & arg )
-     {
-       pyArgs[ i ] = create( arg );
-       ++i;
-     }, args ... );
-     internal::callPyFunc( m_function, pyArgs, argc );
+    // if an error is already set, don't invoke the callback
+    if ( internal::err() ){
+      return;
+    }
+    constexpr std::ptrdiff_t argc = sizeof ... (args);
+    PyObject * pyArgs[ argc ];
+    std::ptrdiff_t i = 0;
+    typeManipulation::forEachArg( [&i, &pyArgs]( auto & arg )
+    {
+      pyArgs[ i ] = create( arg );
+      ++i;
+    }, args ... );
+    bool successful = true;
+    for (i = 0; i < argc; ++i)
+    {
+      if ( pyArgs[ i ] == nullptr ){
+        successful = false;
+      }
+    }
+    if ( !successful ){
+      for (i = 0; i < argc; ++i)
+      {
+        internal::xdecref( pyArgs[ i ] );
+      }
+      return;
+    }
+    // callPyFunc steals all of the pyArgs references
+    internal::callPyFunc( m_function, pyArgs, argc );
   }
 private:
-  PyObjectRef<> m_function; // Could be PyObjectRef perhaps
+  PyObjectRef<> m_function;
 };
 
 
