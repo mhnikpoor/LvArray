@@ -284,6 +284,7 @@ std::pair< int, std::size_t > getNumPyType( std::type_index const typeIndex )
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 PyObject * getNumPyTypeObject( std::type_index const typeIndex ){
+  PYTHON_ERROR_IF( !import_array_wrapper(), PyExc_RuntimeError, "Couldn't import array wrapper", nullptr );
   std::pair< int, std::size_t > const typeInfo = getNumPyType( typeIndex );
   PYTHON_ERROR_IF( typeInfo.first == NPY_NOTYPE, PyExc_TypeError,
                    "No NumPy type for " << system::demangle( typeIndex.name() ), nullptr );
