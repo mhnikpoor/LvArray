@@ -162,5 +162,7 @@ std::string getNumPyTypeName( int const nympyType );
  */
 std::pair< int, std::size_t > getNumPyType( std::type_index const typeIndex );
 
+PyObject * getNumPyTypeObject( std::type_index const typeIndex );
+
 } // namespace python
 } // namespace LvArray

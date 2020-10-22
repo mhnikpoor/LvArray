@@ -282,5 +282,16 @@ std::pair< int, std::size_t > getNumPyType( std::type_index const typeIndex )
   return { NPY_NOTYPE, std::numeric_limits< std::size_t >::max() };
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+PyObject * getNumPyTypeObject( std::type_index const typeIndex ){
+  std::pair< int, std::size_t > const typeInfo = getNumPyType( typeIndex );
+  PYTHON_ERROR_IF( typeInfo.first == NPY_NOTYPE, PyExc_TypeError,
+                   "No NumPy type for " << system::demangle( typeIndex.name() ), nullptr );
+  PyObjectRef<> typeObject { PyArray_TypeObjectFromType( typeInfo.first ) };
+  PYTHON_ERROR_IF( typeObject == nullptr, PyExc_TypeError, "Couldn't get type object", nullptr);
+  return typeObject.release();
+}
+
+
 } // namespace python
 } // namespace LvArray

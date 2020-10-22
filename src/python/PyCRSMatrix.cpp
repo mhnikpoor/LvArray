@@ -179,7 +179,7 @@ static PyObject * PyCRSMatrix_toSciPy( PyCRSMatrix * const self, PyObject * cons
 }
 
 static constexpr char const * PyCRSMatrix_resizeDocString =
-"resize(self, num_rows num_cols, initial_row_capacity=0)\n"
+"resize(self, num_rows, num_cols, initial_row_capacity=0)\n"
 "--\n\n";
 static PyObject * PyCRSMatrix_resize( PyCRSMatrix * const self, PyObject * const args )
 {
@@ -328,7 +328,7 @@ static PyObject * PyCRSMatrix_getAccessLevel( PyCRSMatrix * const self, PyObject
 }
 
 static constexpr char const * PyCRSMatrix_setAccessLevelDocString =
-"set_access_level(self, level, space=None)\n"
+"set_access_level(self, level, space=pylvarray.CPU)\n"
 "--\n\n"
 "Set read/write/resize permissions for the instance. "
 "If ``space`` is provided, move the instance to that space.";
@@ -338,9 +338,13 @@ static PyObject * PyCRSMatrix_setAccessLevel( PyCRSMatrix * const self, PyObject
   VERIFY_INITIALIZED( self );
 
   int newAccessLevel;
-  int newSpace = static_cast< int >( LvArray::MemorySpace::NONE );
+  int newSpace = static_cast< int >( LvArray::MemorySpace::CPU );
   if ( !PyArg_ParseTuple( args, "i|i", &newAccessLevel, &newSpace ) )
   { return nullptr; }
+  if ( newSpace != static_cast< int >( LvArray::MemorySpace::CPU ) ){
+    PyErr_SetString( PyExc_ValueError, "Invalid space" );
+    return nullptr;
+  }
   self->matrix->setAccessLevel( newAccessLevel, newSpace );
   Py_RETURN_NONE;
 }

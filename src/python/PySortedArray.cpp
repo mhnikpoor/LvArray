@@ -155,7 +155,7 @@ static PyObject * PySortedArray_getAccessLevel( PySortedArray * const self, PyOb
 }
 
 static constexpr char const * PySortedArray_setAccessLevelDocString =
-"set_access_level(self, level, space=None)\n"
+"set_access_level(self, level, space=pylvarray.CPU)\n"
 "--\n\n"
 "Set read/write/resize permissions for the instance.\n"
 "The ``MODIFIABLE`` permission has no effect, because the data\n"

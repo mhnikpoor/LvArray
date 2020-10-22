@@ -53,7 +53,7 @@ Module Classes
 Array and SortedArray
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. py:class:: Array
+.. py:class:: pylvarray.Array
 
 	Represents an LvArray::Array, a multidimensional array.
 
@@ -83,7 +83,7 @@ Array and SortedArray
 
 		Return the read/modfiy/resize permissions for the instance.
 
-.. py:class:: SortedArray
+.. py:class:: pylvarray.SortedArray
 
 	Represents an LvArray::SortedArray, a one-dimensional sorted array.
 
@@ -114,7 +114,7 @@ Array and SortedArray
 ArrayOfArrays and ArrayOfSets
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. py:class:: ArrayOfArrays
+.. py:class:: pylvarray.ArrayOfArrays
 
 	Represents an LvArray::ArrayOfArrays, a two-dimensional ragged array.
 
@@ -152,7 +152,7 @@ ArrayOfArrays and ArrayOfSets
 		Remove the value at ``subindex`` in the subarray ``index``.
 
 
-.. py:class:: ArrayOfSets
+.. py:class:: pylvarray.ArrayOfSets
 
 	Represents an LvArray::ArrayOfSets, a collection of sets.
 
@@ -186,7 +186,7 @@ ArrayOfArrays and ArrayOfSets
 CRSMatrix
 ^^^^^^^^^
 
-.. py:class:: CRSMatrix
+.. py:class:: pylvarray.CRSMatrix
 
 	Represents an LvArray::CRSMatrix, a sparse matrix.
 

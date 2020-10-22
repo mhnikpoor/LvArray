@@ -123,6 +123,8 @@ public:
    */
   virtual PyObject * toNumPy() const = 0;
 
+  virtual std::type_index dataType() const = 0;
+
 protected:
 
   /// If the array can be modified.
@@ -193,6 +195,7 @@ public:
     m_array.resize( NDIM, dims );
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual void setAccessLevel( int accessLevel, int memorySpace ) final override
   {
     LVARRAY_UNUSED_VARIABLE( memorySpace );
@@ -205,6 +208,10 @@ public:
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   virtual PyObject * toNumPy() const final override
   { return toNumPyImpl(); };
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  virtual std::type_index dataType() const final override
+  { return std::type_index( typeid( T ) ); }
 
 private:
 

@@ -20,6 +20,8 @@
 // Python must be the first include.
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+// Python include for converting struct attributes to Python objects
+#include "structmember.h"
 
 // Source includes
 #include "PyArray.hpp"
@@ -56,6 +58,7 @@ struct PyArray
   "New instances must be returned from C modules.";
 
   internal::PyArrayWrapperBase * array;
+  PyObject * numpyDtype;
 };
 
 /**
@@ -63,7 +66,7 @@ struct PyArray
  * @param self The PyArray to destroy.
  */
 static void PyArray_dealloc( PyArray * const self )
-{ delete self->array; }
+{ delete self->array; Py_XDECREF( self->numpyDtype ); }
 
 /**
  * @brief The Python __repr__ method for PyArray.
@@ -141,8 +144,7 @@ static PyObject * PyArray_resize( PyArray * const self, PyObject * const args )
 static constexpr char const * PyArray_resizeAllDocString =
 "resize_all(self, new_dims)\n"
 "--\n\n"
-"Resize all of the dimensions, discarding values.\n\n"
-":param new_dims: an itererable of integers.";
+"Resize all of the dimensions in place, discarding values.\n\n";
 static PyObject * PyArray_resizeAll( PyArray * const self, PyObject * const args )
 {
   VERIFY_NON_NULL_SELF( self );
@@ -199,7 +201,7 @@ static PyObject * PyArray_getAccessLevel( PyArray * const self, PyObject * const
 }
 
 static constexpr char const * PyArray_setAccessLevelDocString =
-"set_access_level(self, level, space=None)\n"
+"set_access_level(self, level, space=pylvarray.CPU)\n"
 "--\n\n"
 "Set read/write/resize permissions for the instance.\n\n"
 "If ``space`` is provided, move the instance to that space.";
@@ -209,14 +211,24 @@ static PyObject * PyArray_setAccessLevel( PyArray * const self, PyObject * const
   VERIFY_INITIALIZED( self );
 
   int newAccessLevel;
-  int newSpace = static_cast< int >( LvArray::MemorySpace::NONE );
+  int newSpace = static_cast< int >( LvArray::MemorySpace::CPU );
   if ( !PyArg_ParseTuple( args, "i|i", &newAccessLevel, &newSpace ) )
   { return nullptr; }
+  if ( newSpace != static_cast< int >( LvArray::MemorySpace::CPU ) ){
+    PyErr_SetString( PyExc_ValueError, "Invalid space" );
+    return nullptr;
+  }
   self->array->setAccessLevel( newAccessLevel, newSpace );
   Py_RETURN_NONE;
 }
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
+
+static PyMemberDef PyArray_members[] = {
+    {"dtype", T_OBJECT_EX, offsetof(PyArray, numpyDtype), READONLY,
+     "Numpy dtype of the object"},
+    {nullptr, 0, 0, 0, nullptr}  /* Sentinel */
+};
 
 static PyMethodDef PyArray_methods[] = {
   { "get_single_parameter_resize_index", (PyCFunction) PyArray_getSingleParameterResizeIndex, METH_NOARGS, PyArray_getSingleParameterResizeIndexDocString },
@@ -239,6 +251,7 @@ static PyTypeObject PyArrayType = {
   .tp_flags = Py_TPFLAGS_DEFAULT,
   .tp_doc = PyArray::docString,
   .tp_methods = PyArray_methods,
+  .tp_members = PyArray_members,
   .tp_new = PyType_GenericNew,
 };
 
@@ -261,6 +274,12 @@ PyObject * create( std::unique_ptr< PyArrayWrapperBase > && array )
   { return nullptr; }
 
   retArray->array = array.release();
+
+  PyObject * typeObject = getNumPyTypeObject( retArray->array->dataType() );
+  if ( typeObject == nullptr ){
+    return nullptr;
+  }
+  retArray->numpyDtype = typeObject;
 
   return ret;
 }
