@@ -16,11 +16,6 @@ import os
 import sys
 import shutil
 
-# add path to pylvarray.so
-sys.path.append(os.path.join(os.environ["PWD"].rsplit(os.sep, 2)[0], "lib"))
-# add path to pylvarray.so when building in GEOSX
-sys.path.append(os.path.join(os.environ["PWD"], "lib"))
-
 # Call doxygen in ReadtheDocs
 read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
 if read_the_docs_build:
@@ -80,7 +75,6 @@ release = u''
 extensions = [
 #    'sphinx.ext.mathjax'
     'sphinx.ext.imgmath',
-    'sphinx.ext.autodoc',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
