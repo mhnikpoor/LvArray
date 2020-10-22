@@ -20,6 +20,8 @@
 // Python must be the first include.
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+// Python include for converting struct attributes to Python objects
+#include "structmember.h"
 
 // Source includes
 #include "PyCRSMatrix.hpp"
@@ -55,11 +57,13 @@ struct PyCRSMatrix
   "Represents a LvArray::CRSMatrix instance.";
 
   internal::PyCRSMatrixWrapperBase * matrix;
+
+  PyObject * numpyDtype;
 };
 
 
 static void PyCRSMatrix_dealloc( PyCRSMatrix * const self )
-{ delete self->matrix; }
+{ delete self->matrix; Py_XDECREF( self->numpyDtype ); }
 
 
 static PyObject * PyCRSMatrix_repr( PyObject * const obj )
@@ -351,6 +355,12 @@ static PyObject * PyCRSMatrix_setAccessLevel( PyCRSMatrix * const self, PyObject
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
+static PyMemberDef PyCRSMatrix_members[] = {
+    {"dtype", T_OBJECT_EX, offsetof(PyCRSMatrix, numpyDtype), READONLY,
+     "Numpy dtype of the object"},
+    {nullptr, 0, 0, 0, nullptr}  /* Sentinel */
+};
+
 static PyMethodDef PyCRSMatrix_methods[] = {
   { "num_rows", (PyCFunction) PyCRSMatrix_numRows, METH_NOARGS, PyCRSMatrix_numRowsDocString },
   { "num_columns", (PyCFunction) PyCRSMatrix_numColumns, METH_NOARGS, PyCRSMatrix_numColumnsDocString },
@@ -377,6 +387,7 @@ static PyTypeObject PyCRSMatrixType = {
   .tp_flags = Py_TPFLAGS_DEFAULT,
   .tp_doc = PyCRSMatrix::docString,
   .tp_methods = PyCRSMatrix_methods,
+  .tp_members = PyCRSMatrix_members,
   .tp_new = PyType_GenericNew,
 };
 
@@ -399,6 +410,12 @@ PyObject * create( std::unique_ptr< PyCRSMatrixWrapperBase > && matrix )
   { return nullptr; }
 
   retMatrix->matrix = matrix.release();
+
+  PyObject * typeObject = getNumPyTypeObject( retMatrix->matrix->entryType() );
+  if ( typeObject == nullptr ){
+    return nullptr;
+  }
+  retMatrix->numpyDtype = typeObject;
 
   return ret;
 }

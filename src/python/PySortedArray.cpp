@@ -20,6 +20,8 @@
 // Python must be the first include.
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+// Python include for converting struct attributes to Python objects
+#include "structmember.h"
 
 // Source includes
 #include "PySortedArray.hpp"
@@ -56,11 +58,12 @@ struct PySortedArray
   "";
 
   internal::PySortedArrayWrapperBase * sortedArray;
+  PyObject * numpyDtype;
 };
 
 
 static void PySortedArray_dealloc( PySortedArray * const self )
-{ delete self->sortedArray; }
+{ delete self->sortedArray; Py_XDECREF( self-> numpyDtype ); }
 
 
 static PyObject * PySortedArray_repr( PyObject * const obj )
@@ -176,6 +179,12 @@ static PyObject * PySortedArray_setAccessLevel( PySortedArray * const self, PyOb
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
+static PyMemberDef PySortedArray_members[] = {
+    {"dtype", T_OBJECT_EX, offsetof(PySortedArray, numpyDtype), READONLY,
+     "Numpy dtype of the object"},
+    {nullptr, 0, 0, 0, nullptr}  /* Sentinel */
+};
+
 static PyMethodDef PySortedArray_methods[] = {
   { "insert", (PyCFunction) PySortedArray_insert, METH_VARARGS, PySortedArray_insertDocString },
   { "remove", (PyCFunction) PySortedArray_remove, METH_VARARGS, PySortedArray_removeDocString },
@@ -195,6 +204,7 @@ static PyTypeObject PySortedArrayType = {
   .tp_flags = Py_TPFLAGS_DEFAULT,
   .tp_doc = PySortedArray::docString,
   .tp_methods = PySortedArray_methods,
+  .tp_members = PySortedArray_members,
   .tp_new = PyType_GenericNew,
 };
 
@@ -217,6 +227,12 @@ PyObject * create( std::unique_ptr< PySortedArrayWrapperBase > && array )
   { return nullptr; }
 
   retSortedArray->sortedArray = array.release();
+
+  PyObject * typeObject = getNumPyTypeObject( retSortedArray->sortedArray->dataType() );
+  if ( typeObject == nullptr ){
+    return nullptr;
+  }
+  retSortedArray->numpyDtype = typeObject;
 
   return ret;
 }

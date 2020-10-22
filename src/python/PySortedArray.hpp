@@ -100,6 +100,8 @@ public:
    */
   virtual PyObject * toNumPy() = 0;
 
+  virtual std::type_index dataType() const = 0;
+
 protected:
   int m_accessLevel;
 };
@@ -166,6 +168,10 @@ public:
     }
     m_accessLevel = accessLevel;
   }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  virtual std::type_index dataType() const final override
+  { return std::type_index( typeid( T ) ); }
 
 private:
   SortedArray< T, INDEX_TYPE, BUFFER_TYPE > & m_sortedArray;

@@ -20,6 +20,8 @@
 // Python must be the first include.
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+// Python include for converting struct attributes to Python objects
+#include "structmember.h"
 
 // Source includes
 #include "PyArrayOfArrays.hpp"
@@ -60,10 +62,11 @@ struct PyArrayOfArrays
   "Iterating over an instance will yield a Numpy view of each array.";
 
   internal::PyArrayOfArraysWrapperBase * arrayOfArrays;
+  PyObject * numpyDtype;
 };
 
 static void PyArrayOfArrays_dealloc( PyArrayOfArrays * const self )
-{ delete self->arrayOfArrays; }
+{ delete self->arrayOfArrays; Py_XDECREF( self->numpyDtype ); }
 
 static PyObject * PyArrayOfArrays_repr( PyObject * const obj )
 {
@@ -228,6 +231,12 @@ static PyObject * PyArrayOfArrays_setAccessLevel( PyArrayOfArrays * const self, 
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
+static PyMemberDef PyArrayOfArrays_members[] = {
+    {"dtype", T_OBJECT_EX, offsetof(PyArrayOfArrays, numpyDtype), READONLY,
+     "Numpy dtype of the object"},
+    {nullptr, 0, 0, 0, nullptr}  /* Sentinel */
+};
+
 static PyMethodDef PyArrayOfArrays_methods[] = {
   { "insert", (PyCFunction) PyArrayOfArrays_insert, METH_VARARGS, PyArrayOfArrays_insertDocString },
   { "insert_into", (PyCFunction) PyArrayOfArrays_insertIntoArray, METH_VARARGS, PyArrayOfArrays_insertIntoDocString },
@@ -256,6 +265,7 @@ static PyTypeObject PyArrayOfArraysType = {
   .tp_flags = Py_TPFLAGS_DEFAULT,
   .tp_doc = PyArrayOfArrays::docString,
   .tp_methods = PyArrayOfArrays_methods,
+  .tp_members = PyArrayOfArrays_members,
   .tp_new = PyType_GenericNew,
 };
 
@@ -278,6 +288,12 @@ PyObject * create( std::unique_ptr< PyArrayOfArraysWrapperBase > && array )
   { return nullptr; }
 
   retArrayOfArrays->arrayOfArrays = array.release();
+
+  PyObject * typeObject = getNumPyTypeObject( retArrayOfArrays->arrayOfArrays->valueType() );
+  if ( typeObject == nullptr ){
+    return nullptr;
+  }
+  retArrayOfArrays->numpyDtype = typeObject;
 
   return ret;
 }

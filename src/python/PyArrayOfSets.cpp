@@ -20,6 +20,8 @@
 // Python must be the first include.
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+// Python include for converting struct attributes to Python objects
+#include "structmember.h"
 
 // Source includes
 #include "PyArrayOfSets.hpp"
@@ -60,10 +62,11 @@ struct PyArrayOfSets
   "Iterating over an instance will yield a Numpy view of each set.";
 
   internal::PyArrayOfSetsWrapperBase * arrayOfSets;
+  PyObject * numpyDtype;
 };
 
 static void PyArrayOfSets_dealloc( PyArrayOfSets * const self )
-{ delete self->arrayOfSets; }
+{ delete self->arrayOfSets; Py_XDECREF( self->numpyDtype ); }
 
 static PyObject * PyArrayOfSets_repr( PyObject * const obj )
 {
@@ -226,6 +229,12 @@ static PyObject * PyArrayOfSets_setAccessLevel( PyArrayOfSets * const self, PyOb
 
 BEGIN_ALLOW_DESIGNATED_INITIALIZERS
 
+static PyMemberDef PyArrayOfSets_members[] = {
+    {"dtype", T_OBJECT_EX, offsetof(PyArrayOfSets, numpyDtype), READONLY,
+     "Numpy dtype of the object"},
+    {nullptr, 0, 0, 0, nullptr}  /* Sentinel */
+};
+
 static PyMethodDef PyArrayOfSets_methods[] = {
   { "insert", (PyCFunction) PyArrayOfSets_insertSet, METH_VARARGS, PyArrayOfSets_insertSetDocString },
   { "insert_into", (PyCFunction) PyArrayOfSets_insertIntoSet, METH_VARARGS, PyArrayOfSets_insertIntoDocString },
@@ -254,6 +263,7 @@ static PyTypeObject PyArrayOfSetsType = {
   .tp_flags = Py_TPFLAGS_DEFAULT,
   .tp_doc = PyArrayOfSets::docString,
   .tp_methods = PyArrayOfSets_methods,
+  .tp_members = PyArrayOfSets_members,
   .tp_new = PyType_GenericNew,
 };
 
@@ -276,6 +286,12 @@ PyObject * create( std::unique_ptr< PyArrayOfSetsWrapperBase > && array )
   { return nullptr; }
 
   retArrayOfSets->arrayOfSets = array.release();
+
+  PyObject * typeObject = getNumPyTypeObject( retArrayOfSets->arrayOfSets->valueType() );
+  if ( typeObject == nullptr ){
+    return nullptr;
+  }
+  retArrayOfSets->numpyDtype = typeObject;
 
   return ret;
 }
