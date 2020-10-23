@@ -6,24 +6,35 @@ import numpy as np
 from numpy import testing
 
 import pylvarray
-from testPyArray import get_array1d_int, get_array1d_double, get_array2d_ij_long, get_array2d_ji_float, get_array4d_kilj_double
+from testPyArray import (
+    get_array1d_int,
+    get_array1d_double,
+    get_array2d_ij_long,
+    get_array2d_ji_float,
+    get_array4d_kilj_double,
+)
 
 
 def clear(arr):
     arr.set_access_level(pylvarray.RESIZEABLE)
     view = arr.to_numpy()
-    view[:] = view.dtype.type(0)
+    view[:] = arr.dtype(0)
 
 
 class ArrayTests(unittest.TestCase):
     """Tests for the Array python wrapper."""
 
-    lvarrays = (get_array1d_int, get_array1d_double, get_array2d_ij_long, get_array2d_ji_float, get_array4d_kilj_double)
+    lvarrays = (
+        get_array1d_int,
+        get_array1d_double,
+        get_array2d_ij_long,
+        get_array2d_ji_float,
+        get_array4d_kilj_double,
+    )
 
     def setUp(self):
         for getter in self.lvarrays:
-            view = getter()
-            clear(view)
+            clear(getter())
 
     def test_modification(self):
         for getter in self.lvarrays:
@@ -32,7 +43,7 @@ class ArrayTests(unittest.TestCase):
             view = arr.to_numpy()
             testing.assert_array_equal(view, np.zeros_like(view))
             testing.assert_array_equal(view, getter().to_numpy())
-            view[:] = view.dtype.type(5)
+            view[:] = arr.dtype(5)
             testing.assert_array_equal(view, np.ones_like(view) * 5)
             testing.assert_array_equal(view, getter().to_numpy())
 
@@ -54,7 +65,7 @@ class ArrayTests(unittest.TestCase):
             self.assertEqual(arr.get_access_level(), pylvarray.READ_ONLY)
             view = arr.to_numpy()
             with self.assertRaisesRegex(ValueError, "read-only"):
-                view[0] = view.dtype.type(6)
+                view[0] = arr.dtype(6)
 
     def test_resize_all_not_resizeable(self):
         for getter in self.lvarrays:
@@ -92,5 +103,6 @@ class ArrayTests(unittest.TestCase):
                     arr.resize(resize_val)
                     self.assertEqual(resize_val, arr.to_numpy().shape[dim])
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

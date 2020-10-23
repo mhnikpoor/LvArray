@@ -8,6 +8,7 @@ from numpy import testing
 from testPySortedArray import get_sorted_array_int, get_sorted_array_long
 import pylvarray
 
+
 def clear(arr):
     """Test the insert method."""
     while len(arr.to_numpy()) > 0:
@@ -30,10 +31,9 @@ class SortedArrayTests(unittest.TestCase):
         for getter in self.lvarrays:
             arr = getter()
             arr.set_access_level(pylvarray.RESIZEABLE)
-            dtype = arr.to_numpy().dtype.type
             for value in range(-5, 15):
-                arr.insert(dtype(value))
-                self.assertIn(dtype(value), arr.to_numpy())
+                arr.insert(arr.dtype(value))
+                self.assertIn(arr.dtype(value), arr.to_numpy())
             self.assertEqual(len(arr.to_numpy()), 20)
             testing.assert_array_equal(arr.to_numpy(), np.sort(arr.to_numpy()))
 
@@ -42,12 +42,11 @@ class SortedArrayTests(unittest.TestCase):
         for getter in self.lvarrays:
             arr = getter()
             arr.set_access_level(pylvarray.RESIZEABLE)
-            dtype = arr.to_numpy().dtype.type
             for value in range(-5, 15):
-                arr.insert(dtype(value))
+                arr.insert(arr.dtype(value))
             self.assertEqual(len(arr.to_numpy()), 20)
             for value in range(-5, 15):
-                arr.remove(dtype(value))
+                arr.remove(arr.dtype(value))
             self.assertEqual(len(arr.to_numpy()), 0)
 
     def test_modification_read_only(self):
@@ -55,11 +54,10 @@ class SortedArrayTests(unittest.TestCase):
         for getter in self.lvarrays:
             arr = getter()
             arr.set_access_level(pylvarray.RESIZEABLE)
-            dtype = arr.to_numpy().dtype.type
-            arr.insert(dtype(5))
-            self.assertEqual(arr.to_numpy()[0], dtype(5))
+            arr.insert(arr.dtype(5))
+            self.assertEqual(arr.to_numpy()[0], arr.dtype(5))
             with self.assertRaisesRegex(ValueError, "read-only"):
-                arr.to_numpy()[0] = dtype(6)
+                arr.to_numpy()[0] = arr.dtype(6)
 
     def test_modification_unsafe_conversion(self):
         """Test that calling insert or remove that involves an unsafe type conversion raises an exception."""
@@ -72,5 +70,5 @@ class SortedArrayTests(unittest.TestCase):
                 arr.insert("foobar")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -13,7 +13,9 @@ class ListOfStringsTests(unittest.TestCase):
             for initializer in ("foobar", "barfoo", "hello world!"):
                 strlist = setter(initializer)
                 self.assertEqual(len(strlist), lvarray.ARR_SIZE)
-                self.assertEqual([initializer for _ in range(lvarray.ARR_SIZE)], strlist)
+                self.assertEqual(
+                    [initializer for _ in range(lvarray.ARR_SIZE)], strlist
+                )
 
     def test_get(self):
         lvarray.setarray("foobar")

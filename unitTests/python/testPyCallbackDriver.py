@@ -3,17 +3,19 @@ import unittest
 import testPyCallback
 import pylvarray
 
+
 class CustomException(Exception):
     pass
 
 
 class LvArrayCallbackTests(unittest.TestCase):
-
     def test_modify(self):
         to_modify = 12
+
         def callback(*args):
             nonlocal to_modify
             to_modify += 1
+
         testPyCallback.callback = callback
         for _ in range(10):
             unmodified = to_modify
@@ -23,6 +25,7 @@ class LvArrayCallbackTests(unittest.TestCase):
     def test_custom_exception(self):
         def callback(*args):
             raise CustomException("foobar")
+
         testPyCallback.callback = callback
         with self.assertRaisesRegex(CustomException, "foobar"):
             testPyCallback.call()
@@ -35,9 +38,10 @@ class LvArrayCallbackTests(unittest.TestCase):
             for i in range(10):
                 arg.insert(dtype(i))
                 self.assertIn(i, arg.to_numpy())
+
         testPyCallback.callback = callback
         testPyCallback.call()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

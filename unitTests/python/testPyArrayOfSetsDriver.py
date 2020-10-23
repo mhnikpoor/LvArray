@@ -14,7 +14,6 @@ def clear(array):
 
 
 class LvArrayArrayOfArraysTests(unittest.TestCase):
-
     def setUp(self):
         clear(get_array_of_sets())
         self.assertEqual(len(get_array_of_sets()), 0)
@@ -34,7 +33,6 @@ class LvArrayArrayOfArraysTests(unittest.TestCase):
                 view *= 2
             with self.assertRaisesRegex(ValueError, "read-only"):
                 view[0] = 20
-
 
     def test_bad_delitem(self):
         arr = get_array_of_sets()
@@ -94,10 +92,10 @@ class LvArrayArrayOfArraysTests(unittest.TestCase):
             arr.insert_into(i, np.array((5, 6, 7)))
             testing.assert_array_equal(arr[i], np.array((1, 2, 3, 5, 6, 7)))
         with self.assertRaises(IndexError):
-            arr.insert_into(-1, np.array((1,2)))
+            arr.insert_into(-1, np.array((1, 2)))
         with self.assertRaises(IndexError):
-            arr.insert_into(len(arr), np.array((1,2)))
+            arr.insert_into(len(arr), np.array((1, 2)))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

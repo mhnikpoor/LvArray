@@ -14,7 +14,6 @@ def clear(array):
 
 
 class LvArrayArrayOfArraysTests(unittest.TestCase):
-
     def setUp(self):
         clear(get_array_of_arrays())
         self.assertEqual(len(get_array_of_arrays()), 0)
@@ -100,13 +99,13 @@ class LvArrayArrayOfArraysTests(unittest.TestCase):
             arr.insert_into(i, 0, np.array((5, 6, 7)))
             testing.assert_array_equal(arr[i], np.array((5, 6, 7, 1, 2, 3)))
         with self.assertRaises(IndexError):
-            arr.insert_into(0, len(arr[0]) + 1, np.array((1,2)))
+            arr.insert_into(0, len(arr[0]) + 1, np.array((1, 2)))
         with self.assertRaises(IndexError):
-            arr.insert_into(0, -1, np.array((1,2)))
+            arr.insert_into(0, -1, np.array((1, 2)))
         with self.assertRaises(IndexError):
-            arr.insert_into(-1, 0, np.array((1,2)))
+            arr.insert_into(-1, 0, np.array((1, 2)))
         with self.assertRaises(IndexError):
-            arr.insert_into(len(arr), 0, np.array((1,2)))
+            arr.insert_into(len(arr), 0, np.array((1, 2)))
 
     def test_getitem(self):
         arr = get_array_of_arrays()
@@ -118,5 +117,5 @@ class LvArrayArrayOfArraysTests(unittest.TestCase):
             testing.assert_array_equal(arr[-i], arr[len(arr) - i])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
