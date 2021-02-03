@@ -18,17 +18,20 @@
 
 /**
  * @file pythonForwardDeclarations.hpp
+ * @brief Forward declarations of Python Objects.
+ * @note Taken from https://mail.python.org/pipermail/python-dev/2003-August/037601.html
  */
 
 #pragma once
 
-// Forward declaration of PyObject. Taken from
-// https://mail.python.org/pipermail/python-dev/2003-August/037601.html
+/// @cond DO_NOT_DOCUMENT
+
 #ifndef PyObject_HEAD
 struct _object;
 typedef _object PyObject;
 
-// Forward declaration of PyTypeObject;
 struct _typeobject;
 typedef _typeobject PyTypeObject;
 #endif
+
+/// @endcond DO_NOT_DOCUMENT

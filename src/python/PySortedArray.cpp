@@ -35,6 +35,8 @@
 #include <numpy/arrayobject.h>
 #pragma GCC diagnostic pop
 
+/// @cond DO_NOT_DOCUMENT
+
 namespace LvArray
 {
 namespace python
@@ -99,7 +101,7 @@ static PyObject * PySortedArray_insert( PySortedArray * const self, PyObject * c
     return nullptr;
   }
 
-  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > ret =
+  std::tuple< PyObjectRef< PyObject >, void const *, long long > ret =
     parseNumPyArray( obj, self->sortedArray->valueType() );
 
   if( std::get< 0 >( ret ) == nullptr )
@@ -128,7 +130,7 @@ static PyObject * PySortedArray_remove( PySortedArray * const self, PyObject * c
     return nullptr;
   }
 
-  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > ret =
+  std::tuple< PyObjectRef< PyObject >, void const *, long long > ret =
     parseNumPyArray( obj, self->sortedArray->valueType() );
 
   if( std::get< 0 >( ret ) == nullptr )
@@ -230,9 +232,8 @@ namespace internal
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-PyObject * create( std::unique_ptr< PySortedArrayWrapperBase > && array )
+PyObject * create( std::unique_ptr< PySortedArrayWrapperBase > && sortedArray )
 {
-  // Create a new Group and set the dataRepository::Group it points to.
   PyObject * const ret = PyObject_CallFunction( reinterpret_cast< PyObject * >( getPySortedArrayType() ), "" );
   PySortedArray * const retSortedArray = reinterpret_cast< PySortedArray * >( ret );
   if( retSortedArray == nullptr )
@@ -240,14 +241,15 @@ PyObject * create( std::unique_ptr< PySortedArrayWrapperBase > && array )
     return nullptr;
   }
 
-  retSortedArray->sortedArray = array.release();
 
-  PyObject * typeObject = getNumPyTypeObject( retSortedArray->sortedArray->dataType() );
+  PyObject * typeObject = getNumPyTypeObject( sortedArray->valueType() );
   if( typeObject == nullptr )
   {
     return nullptr;
   }
+
   retSortedArray->numpyDtype = typeObject;
+  retSortedArray->sortedArray = sortedArray.release();
 
   return ret;
 }
@@ -256,3 +258,5 @@ PyObject * create( std::unique_ptr< PySortedArrayWrapperBase > && array )
 
 } // namespace python
 } // namespace LvArray
+
+/// @endcond DO_NOT_DOCUMENT

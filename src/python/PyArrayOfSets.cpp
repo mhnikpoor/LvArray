@@ -35,6 +35,8 @@
 #include <numpy/arrayobject.h>
 #pragma GCC diagnostic pop
 
+/// @cond DO_NOT_DOCUMENT
+
 namespace LvArray
 {
 namespace python
@@ -146,7 +148,11 @@ static PyObject * PyArrayOfSets_sq_repeat( PyArrayOfSets * self, Py_ssize_t args
 static constexpr char const * PyArrayOfSets_insertIntoDocString =
   "insert_into(self, set, values)\n"
   "--\n\n"
-  "Insert values into a set";
+  "Insert values into a set"
+  "Returns\n"
+  "_______\n"
+  "integer\n"
+  "    The number of values inserted into the set.";
 static PyObject * PyArrayOfSets_insertIntoSet( PyArrayOfSets * self, PyObject * args )
 {
   VERIFY_RESIZEABLE( self );
@@ -156,19 +162,24 @@ static PyObject * PyArrayOfSets_insertIntoSet( PyArrayOfSets * self, PyObject * 
   {
     return nullptr;
   }
+
   if( setIndex < 0 || setIndex >= self->arrayOfSets->size() )
   {
     PyErr_SetString( PyExc_IndexError, "index out of bounds" );
     return nullptr;
   }
-  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > ret =
+
+  std::tuple< PyObjectRef< PyObject >, void const *, long long > ret =
     parseNumPyArray( arr, self->arrayOfSets->valueType() );
+
   if( std::get< 0 >( ret ) == nullptr )
   {
     return nullptr;
   }
-  self->arrayOfSets->insertIntoSet( setIndex, std::get< 1 >( ret ), std::get< 2 >( ret ) );
-  Py_RETURN_NONE;
+
+  return PyLong_FromLongLong( self->arrayOfSets->insertIntoSet( setIndex,
+                                                                std::get< 1 >( ret ),
+                                                                std::get< 2 >( ret ) ) );
 }
 
 static constexpr char const * PyArrayOfSets_insertSetDocString =
@@ -201,7 +212,11 @@ static PyObject * PyArrayOfSets_insertSet( PyArrayOfSets * self, PyObject * args
 static constexpr char const * PyArrayOfSets_removeFromSetDocString =
   "erase_from(self, set_index, values)\n"
   "--\n\n"
-  "Erase values from a set.";
+  "Erase values from a set."
+  "Returns\n"
+  "_______\n"
+  "integer\n"
+  "    The number of values removed from the set.";
 static PyObject * PyArrayOfSets_removeFromSet( PyArrayOfSets * self, PyObject * args )
 {
   VERIFY_RESIZEABLE( self );
@@ -211,15 +226,19 @@ static PyObject * PyArrayOfSets_removeFromSet( PyArrayOfSets * self, PyObject * 
   {
     return nullptr;
   }
+
   if( index < 0 || index >= self->arrayOfSets->size() )
   {
     PyErr_SetString( PyExc_IndexError, "index out of bounds" );
     return nullptr;
   }
-  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > ret =
+
+  std::tuple< PyObjectRef< PyObject >, void const *, long long > ret =
     parseNumPyArray( arr, self->arrayOfSets->valueType() );
-  self->arrayOfSets->removeFromSet( index, std::get< 1 >( ret ), std::get< 2 >( ret ) );
-  Py_RETURN_NONE;
+
+  return PyLong_FromLongLong( self->arrayOfSets->removeFromSet( index,
+                                                                std::get< 1 >( ret ),
+                                                                std::get< 2 >( ret ) ) );
 }
 
 static constexpr char const * PyArrayOfSets_getAccessLevelDocString =
@@ -305,7 +324,7 @@ namespace internal
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-PyObject * create( std::unique_ptr< PyArrayOfSetsWrapperBase > && array )
+PyObject * create( std::unique_ptr< PyArrayOfSetsWrapperBase > && arrayOfSets )
 {
   // Create a new Group and set the dataRepository::Group it points to.
   PyObject * const ret = PyObject_CallFunction( reinterpret_cast< PyObject * >( getPyArrayOfSetsType() ), "" );
@@ -315,14 +334,14 @@ PyObject * create( std::unique_ptr< PyArrayOfSetsWrapperBase > && array )
     return nullptr;
   }
 
-  retArrayOfSets->arrayOfSets = array.release();
-
-  PyObject * typeObject = getNumPyTypeObject( retArrayOfSets->arrayOfSets->valueType() );
+  PyObject * typeObject = getNumPyTypeObject( arrayOfSets->valueType() );
   if( typeObject == nullptr )
   {
     return nullptr;
   }
+
   retArrayOfSets->numpyDtype = typeObject;
+  retArrayOfSets->arrayOfSets = arrayOfSets.release();
 
   return ret;
 }
@@ -331,3 +350,5 @@ PyObject * create( std::unique_ptr< PyArrayOfSetsWrapperBase > && array )
 
 } // namespace python
 } // namespace LvArray
+
+/// @endcond DO_NOT_DOCUMENT

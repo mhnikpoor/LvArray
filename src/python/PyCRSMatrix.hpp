@@ -46,133 +46,185 @@ namespace internal
 {
 
 /**
- *
+ * @class PyCRSMatrixWrapperBase
+ * @brief Provides a virtual Python wrapper around a CRSMatrix.
  */
 class PyCRSMatrixWrapperBase
 {
 public:
 
   /**
-   *
-   */
-  PyCRSMatrixWrapperBase( ):
-    m_accessLevel( static_cast< int >( LvArray::python::PyModify::READ_ONLY ) )
-  {}
-
-  /**
-   *
+   * @brief Default destructor.
    */
   virtual ~PyCRSMatrixWrapperBase() = default;
 
   /**
-   * @brief Return the access level for the array.
-   * @return the access level for the array.
+   * @brief Return the access level for the matrix.
+   * @return The access level for the matrix.
    */
   virtual int getAccessLevel() const
   { return m_accessLevel; }
 
   /**
-   * @brief Set the access level for the array.
+   * @brief Set the access level for the matrix.
+   * @param accessLevel The access level.
+   * @param memorySpace The memory space.
    */
-  virtual void setAccessLevel( int accessLevel, int memorySpace ) = 0;
+  virtual void setAccessLevel( int const accessLevel, int const memorySpace ) = 0;
 
   /**
-   *
+   * @brief Return a string representing the underlying CRSMatrix type.
+   * @return a string representing the underlying CRSMatrix type.
    */
   virtual std::string repr() const = 0;
 
   /**
-   *
+   * @brief Return the type of the columns.
+   * @return The type of the columns.
    */
   virtual std::type_index columnType() const = 0;
 
   /**
-   *
+   * @brief Return the type of the entries.
+   * @return The type of the entries.
    */
   virtual std::type_index entryType() const = 0;
 
   /**
-   *
+   * @brief Return the number of rows in the matrix.
+   * @return The number of rows in the matrix.
+   * @note This wraps CRSMatrix::numRows.
    */
-  virtual std::ptrdiff_t numRows() const = 0;
+  virtual long long numRows() const = 0;
 
   /**
-   *
+   * @brief Return the number of columns in the matrix.
+   * @return The number of columns in the matrix.
+   * @note This wraps CRSMatrix::numColumns.
    */
-  virtual std::ptrdiff_t numColumns() const = 0;
+  virtual long long numColumns() const = 0;
 
   /**
-   *
+   * @brief Return true iff the matrix is compressed (no extra space between the rows).
+   * @return True iff the matrix is compressed (no extra space between the rows).
    */
   virtual bool isCompressed() const = 0;
 
   /**
-   *
+   * @brief Return a 1D NumPy array of the columns for @c row.
+   * @param row The row to query.
+   * @return A 1D NumPy array of the columns for @c row.
+   * @note This wraps CRSMatrix::getColumns.
    */
-  virtual PyObject * getColumns( std::ptrdiff_t const row ) const = 0;
+  virtual PyObject * getColumns( long long const row ) const = 0;
 
   /**
-   *
+   * @brief Return a 1D NumPy array of the entries for @c row.
+   * @param row The row to query.
+   * @return A 1D NumPy array of the entries for @c row.
+   * @note This wraps CRSMatrix::getEntries.
    */
-  virtual PyObject * getEntries( std::ptrdiff_t const row ) const = 0;
+  virtual PyObject * getEntries( long long const row ) const = 0;
 
   /**
-   *
+   * @brief Return 3 1D NumPy arrays of the entries, columns and offsets that comprise the matrix.
+   * @return 3 1D NumPy arrays of the entries, columns and offsets that comprise the matrix.
    */
   virtual std::array< PyObject *, 3 > getEntriesColumnsAndOffsets() const = 0;
 
   /**
-   *
+   * @brief Resize the matrix.
+   * @param numRows The new number of rows in the matrix.
+   * @param numCols The new number of columns in the matrix.
+   * @param initialRowCapacity The non-zero capacity per-row.
+   * @note This wraps CRSMatrix::resize.
    */
-  virtual void resize( std::ptrdiff_t const numRows,
-                       std::ptrdiff_t const numCols,
-                       std::ptrdiff_t const initialRowCapacity ) = 0;
+  virtual void resize( long long const numRows,
+                       long long const numCols,
+                       long long const initialRowCapacity ) = 0;
 
   /**
-   *
+   * @brief Compress the matrix so that there is no extra space between the rows.
+   * @note This wraps CRSMatrix::compress.
    */
   virtual void compress() = 0;
 
   /**
-   *
+   * @brief Insert new non zero entries into a row.
+   * @param row The row to insert into.
+   * @param cols The columns to insert, must be of type @c columnType() and length @c numCols.
+   * @param entries The entries to insert, must be of type @c entryType() and length @c numCols.
+   * @param numCols The number of columns to insert.
+   * @return The number of entries inserted.
+   * @note This wraps CRSMatrix::insertNonZeros.
    */
-  virtual std::ptrdiff_t insertNonZeros( std::ptrdiff_t const row,
-                                         void const * const cols,
-                                         void const * const entries,
-                                         std::ptrdiff_t const numCols ) = 0;
+  virtual long long insertNonZeros( long long const row,
+                                    void const * const cols,
+                                    void const * const entries,
+                                    long long const numCols ) = 0;
 
   /**
-   *
+   * @brief Remove non zero entries from a row.
+   * @param row The row to remove from.
+   * @param cols The columns to remove, must be of type @c columnType() and length @c numCols.
+   * @param numCols The number of columns to insert.
+   * @return The number of entries removed.
+   * @note This wraps CRSMatrix::removeNonZeros.
    */
-  virtual std::ptrdiff_t removeNonZeros( std::ptrdiff_t const row,
-                                         void const * const cols,
-                                         std::ptrdiff_t const numCols ) = 0;
+  virtual long long removeNonZeros( long long const row,
+                                    void const * const cols,
+                                    long long const numCols ) = 0;
+
   /**
-   *
+   * @brief Add to existing entries in a row.
+   * @param row The row to add to.
+   * @param cols The columns to add to, must be of type @c columnType() and length @c numCols.
+   * @param vals The values to add, must be of type @c entryType() and length @c numCols.
+   * @param numCols The number of columns to add to.
+   * @note This wraps CRSMatrix::addToRowBinarySearchUnsorted.
    */
-  virtual void addToRow( std::ptrdiff_t const row,
+  virtual void addToRow( long long const row,
                          void const * const cols,
                          void const * const vals,
-                         std::ptrdiff_t const numCols ) const = 0;
+                         long long const numCols ) const = 0;
 
 protected:
-  /// access level for the array
+
+  /**
+   * @brief Construct an empty PyCRSMatrixWrapperBase.
+   */
+  PyCRSMatrixWrapperBase():
+    m_accessLevel( static_cast< int >( LvArray::python::PyModify::READ_ONLY ) )
+  {}
+
+  /// access level for the matrix.
   int m_accessLevel;
 };
 
 /**
- *
+ * @class PyCRSMatrixWrapper
+ * @brief Provides a concrete implementation of PyCRSMatrixWrapperBase.
+ * @tparam T The type of the entries in the CRSMatrix.
+ * @tparam COL_TYPE The type of the columns in the CRSMatrix.
+ * @tparam INDEX_TYPE The index type of the CRSMatrix.
+ * @tparam BUFFER_TYPE The buffer type of the CRSMatrix.
+ * @note This holds a reference to the wrapped CRSMatrix, you must ensure that the reference remains valid
+ *   for the lifetime of this object.
  */
 template< typename T,
           typename COL_TYPE,
           typename INDEX_TYPE,
           template< typename > class BUFFER_TYPE >
-class PyCRSMatrixWrapper : public PyCRSMatrixWrapperBase
+class PyCRSMatrixWrapper final : public PyCRSMatrixWrapperBase
 {
 public:
 
+  /**
+   * @brief Construct a new Python wrapper around @c matrix.
+   * @param matrix The CRSMatrix to wrap.
+   */
   PyCRSMatrixWrapper( CRSMatrix< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > & matrix ):
-    PyCRSMatrixWrapperBase( ),
+    PyCRSMatrixWrapperBase(),
     m_matrix( matrix )
   {}
 
@@ -192,11 +244,11 @@ public:
   { return typeid( T ); }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  virtual std::ptrdiff_t numRows() const final override
+  virtual long long numRows() const final override
   { return m_matrix.numRows(); }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  virtual std::ptrdiff_t numColumns() const final override
+  virtual long long numColumns() const final override
   { return m_matrix.numColumns(); }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -210,20 +262,20 @@ public:
     using REDUCE_POLICY = RAJA::seq_reduce;
     #endif
 
-    RAJA::ReduceSum< REDUCE_POLICY, INDEX_TYPE > notCompressed( 0 );
+    RAJA::ReduceBitAnd< REDUCE_POLICY, bool > compressed( true );
 
     RAJA::forall< EXEC_POLICY >( RAJA::TypedRangeSegment< INDEX_TYPE >( 0, m_matrix.numRows() ),
-                                 [notCompressed, this] ( INDEX_TYPE const row )
+                                 [compressed, this] ( INDEX_TYPE const row )
     {
-      notCompressed += m_matrix.numNonZeros( row ) != m_matrix.nonZeroCapacity( row );
+      compressed &= m_matrix.numNonZeros( row ) == m_matrix.nonZeroCapacity( row );
     }
                                  );
 
-    return !notCompressed.get();
+    return compressed.get();
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  virtual PyObject * getColumns( std::ptrdiff_t const row ) const final override
+  virtual PyObject * getColumns( long long const row ) const final override
   {
     INDEX_TYPE const convertedRow = integerConversion< INDEX_TYPE >( row );
     COL_TYPE const * const columns = m_matrix.getColumns( convertedRow );
@@ -233,7 +285,7 @@ public:
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  virtual PyObject * getEntries( std::ptrdiff_t const row ) const final override
+  virtual PyObject * getEntries( long long const row ) const final override
   {
     INDEX_TYPE const convertedRow = integerConversion< INDEX_TYPE >( row );
     T * const entries = m_matrix.getEntries( convertedRow );
@@ -258,7 +310,7 @@ public:
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  virtual void setAccessLevel( int accessLevel, int memorySpace ) final override
+  virtual void setAccessLevel( int const accessLevel, int const memorySpace ) final override
   {
     LVARRAY_UNUSED_VARIABLE( memorySpace );
     if( accessLevel >= static_cast< int >( LvArray::python::PyModify::RESIZEABLE ) )
@@ -269,9 +321,9 @@ public:
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  virtual void resize( std::ptrdiff_t const numRows,
-                       std::ptrdiff_t const numCols,
-                       std::ptrdiff_t const initialRowCapacity ) final override
+  virtual void resize( long long const numRows,
+                       long long const numCols,
+                       long long const initialRowCapacity ) final override
   {
     INDEX_TYPE const convertedNumRows = integerConversion< INDEX_TYPE >( numRows );
     INDEX_TYPE const convertedNumCols = integerConversion< INDEX_TYPE >( numCols );
@@ -284,34 +336,34 @@ public:
   { m_matrix.compress(); }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  virtual std::ptrdiff_t insertNonZeros( std::ptrdiff_t const row,
-                                         void const * const cols,
-                                         void const * const entries,
-                                         std::ptrdiff_t const numCols ) final override
+  virtual long long insertNonZeros( long long const row,
+                                    void const * const cols,
+                                    void const * const entries,
+                                    long long const numCols ) final override
   {
     INDEX_TYPE const convertedRow = integerConversion< INDEX_TYPE >( row );
     COL_TYPE const * const castedCols = reinterpret_cast< COL_TYPE const * >( cols );
     T const * const castedEntries = reinterpret_cast< T const * >( entries );
     INDEX_TYPE const convertedNumCols = integerConversion< INDEX_TYPE >( numCols );
-    return integerConversion< std::ptrdiff_t >( m_matrix.insertNonZeros( convertedRow, castedCols, castedEntries, convertedNumCols ) );
+    return integerConversion< long long >( m_matrix.insertNonZeros( convertedRow, castedCols, castedEntries, convertedNumCols ) );
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  virtual std::ptrdiff_t removeNonZeros( std::ptrdiff_t const row,
-                                         void const * const cols,
-                                         std::ptrdiff_t const numCols ) final override
+  virtual long long removeNonZeros( long long const row,
+                                    void const * const cols,
+                                    long long const numCols ) final override
   {
     INDEX_TYPE const convertedRow = integerConversion< INDEX_TYPE >( row );
     COL_TYPE const * const castedCols = reinterpret_cast< COL_TYPE const * >( cols );
     INDEX_TYPE const convertedNumCols = integerConversion< INDEX_TYPE >( numCols );
-    return integerConversion< std::ptrdiff_t >( m_matrix.removeNonZeros( convertedRow, castedCols, convertedNumCols ) );
+    return integerConversion< long long >( m_matrix.removeNonZeros( convertedRow, castedCols, convertedNumCols ) );
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  virtual void addToRow( std::ptrdiff_t const row,
+  virtual void addToRow( long long const row,
                          void const * const cols,
                          void const * const vals,
-                         std::ptrdiff_t const numCols ) const final override
+                         long long const numCols ) const final override
   {
     INDEX_TYPE const convertedRow = integerConversion< INDEX_TYPE >( row );
     COL_TYPE const * const castedCols = reinterpret_cast< COL_TYPE const * >( cols );
@@ -324,20 +376,30 @@ public:
   }
 
 private:
+  /// The CRSMatrix to wrap.
   CRSMatrix< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > & m_matrix;
 };
 
 /**
- *
+ * @brief Create a Python object corresponding to @c matrix.
+ * @param matrix The matrix to export to Python.
+ * @return A Python object corresponding to @c matrix.
  */
 PyObject * create( std::unique_ptr< internal::PyCRSMatrixWrapperBase > && matrix );
 
 } // namespace internal
 
 /**
- *
+ * @brief Create a Python object corresponding to @c matrix.
+ * @tparam T The type of the entries in the CRSMatrix.
+ * @tparam COL_TYPE The type of the columns in the CRSMatrix.
+ * @tparam INDEX_TYPE The index type of the CRSMatrix.
+ * @tparam BUFFER_TYPE The buffer type of the CRSMatrix.
+ * @param matrix The CRSMatrix to export to Python.
+ * @return A Python object corresponding to @c matrix.
+ * @note The returned Python object holds a reference to @c matrix, you must ensure
+ *   the reference remains valid throughout the lifetime of the object.
  */
-// TODO Support multiple levels of modification.
 template< typename T,
           typename COL_TYPE,
           typename INDEX_TYPE,
@@ -345,11 +407,13 @@ template< typename T,
 std::enable_if_t< internal::canExportToNumpy< T >, PyObject * >
 create( CRSMatrix< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > & matrix )
 {
-  return internal::create( std::make_unique< internal::PyCRSMatrixWrapper< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > >( matrix ) );
+  auto tmp = std::make_unique< internal::PyCRSMatrixWrapper< T, COL_TYPE, INDEX_TYPE, BUFFER_TYPE > >( matrix );
+  return internal::create( std::move( tmp ) );
 }
 
 /**
- *
+ * @brief Return the Python type for the CRSMatrix.
+ * @return The Python type for the CRSMatrix.
  */
 PyTypeObject * getPyCRSMatrixType();
 

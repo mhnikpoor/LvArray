@@ -35,6 +35,8 @@
 #include <numpy/arrayobject.h>
 #pragma GCC diagnostic pop
 
+/// @cond DO_NOT_DOCUMENT
+
 namespace LvArray
 {
 namespace python
@@ -61,10 +63,8 @@ struct PyCRSMatrix
   PyObject * numpyDtype;
 };
 
-
 static void PyCRSMatrix_dealloc( PyCRSMatrix * const self )
 { delete self->matrix; Py_XDECREF( self->numpyDtype ); }
-
 
 static PyObject * PyCRSMatrix_repr( PyObject * const obj )
 {
@@ -121,7 +121,7 @@ static PyObject * PyCRSMatrix_getColumns( PyCRSMatrix * const self, PyObject * c
     return nullptr;
   }
 
-  std::ptrdiff_t const numRows = self->matrix->numRows();
+  long long const numRows = self->matrix->numRows();
   PYTHON_ERROR_IF( row < 0 || row >= numRows, PyExc_RuntimeError,
                    "Row " << row  <<" is out of bounds for a matrix with " << numRows << " rows.", nullptr );
 
@@ -142,7 +142,7 @@ static PyObject * PyCRSMatrix_getEntries( PyCRSMatrix * const self, PyObject * c
     return nullptr;
   }
 
-  std::ptrdiff_t const numRows = self->matrix->numRows();
+  long long const numRows = self->matrix->numRows();
   PYTHON_ERROR_IF( row < 0 || row >= numRows, PyExc_RuntimeError,
                    "Row " << row << " is out of bounds for a matrix with " << numRows << " rows.", nullptr );
 
@@ -242,10 +242,10 @@ static PyObject * PyCRSMatrix_insertNonZeros( PyCRSMatrix * const self, PyObject
     return nullptr;
   }
 
-  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > colsInfo =
+  std::tuple< PyObjectRef< PyObject >, void const *, long long > colsInfo =
     parseNumPyArray( cols, self->matrix->columnType() );
 
-  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > entriesInfo =
+  std::tuple< PyObjectRef< PyObject >, void const *, long long > entriesInfo =
     parseNumPyArray( entries, self->matrix->entryType() );
 
   if( std::get< 0 >( colsInfo ) == nullptr ||  std::get< 0 >( entriesInfo ) == nullptr )
@@ -256,7 +256,7 @@ static PyObject * PyCRSMatrix_insertNonZeros( PyCRSMatrix * const self, PyObject
   PYTHON_ERROR_IF( std::get< 2 >( colsInfo ) != std::get< 2 >( entriesInfo ), PyExc_RuntimeError,
                    "Number of columns and entries must match!", nullptr );
 
-  std::ptrdiff_t const numRows = self->matrix->numRows();
+  long long const numRows = self->matrix->numRows();
   PYTHON_ERROR_IF( row < 0 || row >= numRows, PyExc_RuntimeError,
                    "Row " << row << " is out of bounds for a matrix with " << numRows << " rows.", nullptr );
 
@@ -282,7 +282,7 @@ static PyObject * PyCRSMatrix_removeNonZeros( PyCRSMatrix * const self, PyObject
     return nullptr;
   }
 
-  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > colsInfo =
+  std::tuple< PyObjectRef< PyObject >, void const *, long long > colsInfo =
     parseNumPyArray( cols, self->matrix->columnType() );
 
   if( std::get< 0 >( colsInfo ) == nullptr )
@@ -290,7 +290,7 @@ static PyObject * PyCRSMatrix_removeNonZeros( PyCRSMatrix * const self, PyObject
     return nullptr;
   }
 
-  std::ptrdiff_t const numRows = self->matrix->numRows();
+  long long const numRows = self->matrix->numRows();
   PYTHON_ERROR_IF( row < 0 || row >= numRows, PyExc_RuntimeError,
                    "Row " << row << " is out of bounds for a matrix with " << numRows << " rows.", nullptr );
 
@@ -315,10 +315,10 @@ static PyObject * PyCRSMatrix_addToRow( PyCRSMatrix * const self, PyObject * con
     return nullptr;
   }
 
-  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > colsInfo =
+  std::tuple< PyObjectRef< PyObject >, void const *, long long > colsInfo =
     parseNumPyArray( cols, self->matrix->columnType() );
 
-  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > valsInfo =
+  std::tuple< PyObjectRef< PyObject >, void const *, long long > valsInfo =
     parseNumPyArray( vals, self->matrix->entryType() );
 
   if( std::get< 0 >( colsInfo ) == nullptr ||  std::get< 0 >( valsInfo ) == nullptr )
@@ -326,7 +326,7 @@ static PyObject * PyCRSMatrix_addToRow( PyCRSMatrix * const self, PyObject * con
     return nullptr;
   }
 
-  std::ptrdiff_t const numRows = self->matrix->numRows();
+  long long const numRows = self->matrix->numRows();
   PYTHON_ERROR_IF( row < 0 || row >= numRows, PyExc_RuntimeError,
                    "Row " << row << " is out of bounds for a matrix with " << numRows << " rows.", nullptr );
 
@@ -434,14 +434,14 @@ PyObject * create( std::unique_ptr< PyCRSMatrixWrapperBase > && matrix )
     return nullptr;
   }
 
-  retMatrix->matrix = matrix.release();
-
-  PyObject * typeObject = getNumPyTypeObject( retMatrix->matrix->entryType() );
+  PyObject * typeObject = getNumPyTypeObject( matrix->entryType() );
   if( typeObject == nullptr )
   {
     return nullptr;
   }
+
   retMatrix->numpyDtype = typeObject;
+  retMatrix->matrix = matrix.release();
 
   return ret;
 }
@@ -450,3 +450,5 @@ PyObject * create( std::unique_ptr< PyCRSMatrixWrapperBase > && matrix )
 
 } // namespace python
 } // namespace LvArray
+
+/// @endcond DO_NOT_DOCUMENT

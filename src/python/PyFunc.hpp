@@ -37,56 +37,72 @@ namespace python
 namespace internal
 {
 
-bool err( void );
+/**
+ * @brief Return @c true iff a Python exception has been set.
+ * @return @c true iff a Python exception has been set.
+ */
+bool err();
 
-void callPyFunc( PyObject * func, PyObject * * args, std::ptrdiff_t argc );
+/**
+ * @brief Call the Python function @c func.
+ * @param func The Python function to call.
+ * @param args The arguments to call the function with, must be of length @c argc. These references are stolen and
+ *   invalid after this call.
+ * @param argc The number of arguments to call the function with.
+ */
+void callPyFunc( PyObject * func, PyObjectRef<> * args, long long const argc );
 
 } // namespace internal
 
+/**
+ * @brief A C++ functor wrapper around a Python function.
+ * @tparam ARGS A variadic parameter pack of types to call the function with.
+ */
 template< typename ... ARGS >
 class PythonFunction
 {
 public:
 
+  /**
+   * @brief create a PythonFunction around @c pyfunc.
+   * @param pyfunc the Python function to wrap, a new reference is created.
+   */
   PythonFunction( PyObject * pyfunc ):
     m_function( pyfunc )
   { internal::xincref( pyfunc ); }
 
+  /**
+   * @brief Call the Python function with arguments @c args.
+   * @param args The arguments to call the function with.
+   */
   void operator()( ARGS ... args )
   {
     // if an error is already set, don't invoke the callback
-    constexpr std::ptrdiff_t argc = sizeof ... (args);
-    PyObject * pyArgs[ argc ];
-    std::ptrdiff_t i = 0;
+    constexpr long long ARGC = sizeof ... (args);
+    PyObjectRef<> pyArgs[ ARGC ];
+
+    long long i = 0;
     typeManipulation::forEachArg( [&i, &pyArgs]( auto & arg )
     {
       pyArgs[ i ] = create( arg );
       ++i;
     }, args ... );
-    bool successful = true;
-    for( i = 0; i < argc; ++i )
+
+    for( i = 0; i < ARGC; ++i )
     {
       if( pyArgs[ i ] == nullptr )
-      {
-        successful = false;
-      }
+      { return; }
     }
-    if( !successful )
-    {
-      for( i = 0; i < argc; ++i )
-      {
-        internal::xdecref( pyArgs[ i ] );
-      }
-      return;
-    }
+
     // callPyFunc steals all of the pyArgs references
-    internal::callPyFunc( m_function, pyArgs, argc );
+    internal::callPyFunc( m_function, pyArgs, ARGC );
+
     if( internal::err() )
-    {
-      throw PythonError();
-    }
+    { throw PythonError(); }
   }
+
 private:
+  /// A reference to the wrapped python function.
   PyObjectRef<> m_function;
 };
 

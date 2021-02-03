@@ -25,6 +25,8 @@
 #include "../limits.hpp"
 #include "pythonHelpers.hpp"
 
+/// @cond DO_NOT_DOCUMENT
+
 namespace LvArray
 {
 namespace python
@@ -132,6 +134,7 @@ bool addPyLvArrayModule( PyObject * module )
   {
     return false;
   }
+
   return true;
 }
 
@@ -140,6 +143,6 @@ bool addPyLvArrayModule( PyObject * module )
 
 PyMODINIT_FUNC
 PyInit_pylvarray( void )
-{
-  return LvArray::python::getModule().release();
-}
+{ return LvArray::python::getModule().release(); }
+
+/// @endcond DO_NOT_DOCUMENT

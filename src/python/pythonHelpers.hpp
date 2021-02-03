@@ -31,6 +31,13 @@
 // system includes
 #include <vector>
 
+/**
+ * @brief Raise a Python exception if @c CONDITION is met.
+ * @param CONDITION The condition to check.
+ * @param TYPE The Type of Python exception to raise.
+ * @param MSG The message to give the exception.
+ * @param RET The return value if there was an error.
+ */
 #if defined(PyObject_HEAD)
 #define PYTHON_ERROR_IF( CONDITION, TYPE, MSG, RET ) \
   do \
@@ -52,6 +59,9 @@
   static_assert( false, "You are attempting to use PYTHON_ERROR_IF but haven't yet included Python.hpp" )
 #endif
 
+/// @cond DO_NOT_DOCUMENT
+/// Doxygen doesn't like this macro/pragma nest.
+
 /**
  * @brief Begin mixing designated and non-designated initializers in the same initializer list.
  */
@@ -60,7 +70,7 @@
 #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
   _Pragma( "GCC diagnostic push" )
 _Pragma( "GCC diagnostic ignored \"-Wgnu-designator\"")
-  #elif 1
+  #else
 #define BEGIN_ALLOW_DESIGNATED_INITIALIZERS \
   _Pragma( "GCC diagnostic push" )
 _Pragma( "GCC diagnostic ignored \"-Wc99-extensions\"")
@@ -78,6 +88,7 @@ _Pragma( "GCC diagnostic ignored \"-Wmissing-field-initializers\"" )
 #define END_ALLOW_DESIGNATED_INITIALIZERS \
   _Pragma( "GCC diagnostic pop" )
 
+/// @endcond DO_NOT_DOCUMENT
 
 namespace LvArray
 {
@@ -108,6 +119,10 @@ bool isInstanceOf( PyObject * const obj, PyTypeObject * type );
 
 } // namespace internal
 
+/**
+ * @enum PyModify
+ * @brief An enumeration of the various access policies for Python objects.
+ */
 enum class PyModify
 {
   READ_ONLY = 0,
@@ -118,7 +133,7 @@ enum class PyModify
 /**
  * @class PyObjectRef
  * @brief A class that manages an owned Python reference with RAII semantics.
- * @tparam The type of the managed object, must be castable to a PyObject.
+ * @tparam T The type of the managed object, must be castable to a PyObject.
  */
 template< typename T = PyObject >
 class PyObjectRef
@@ -141,7 +156,7 @@ public:
 
   /**
    * @brief Create a new reference to @p src.
-   * @param The object to create a new reference to.
+   * @param src The object to create a new reference to.
    * @note Increases the reference count.
    */
   PyObjectRef( PyObjectRef const & src )
@@ -149,7 +164,7 @@ public:
 
   /**
    * @brief Steal a reference from @p src.
-   * @param The object to steal a reference to.
+   * @param src The object to steal a reference to.
    * @note Does not increase the reference count.
    */
   PyObjectRef( PyObjectRef && src )
@@ -163,7 +178,7 @@ public:
 
   /**
    * @brief Create a new reference to @p src.
-   * @param The object to create a new reference to.
+   * @param src The object to create a new reference to.
    * @return *this.
    * @note Increases the reference count.
    */
@@ -176,7 +191,7 @@ public:
 
   /**
    * @brief Steal a reference from @p src.
-   * @param The object to steal a reference to.
+   * @param src The object to steal a reference to.
    * @return *this.
    * @note Does not increase the reference count.
    */
@@ -190,7 +205,7 @@ public:
   /**
    * @brief Decrease the reference count to the current object and take ownership
    *   of a new reference.
-   * @p src The new object to be referenced.
+   * @param src The new object to be referenced.
    * @return *this.
    */
   PyObjectRef & operator=( PyObject * src )
@@ -263,25 +278,37 @@ T * convert( PyObject * const obj, PyTypeObject * const type )
  * @brief Add the Python type @p type to the module @p module.
  * @param module The Python module to add @p type to.
  * @param type The Python type to add to @p module.
+ * @param typeName The name to give the type.
  * @return @c true iff the operation was successful.
  */
 bool addTypeToModule( PyObject * const module,
                       PyTypeObject * const type,
                       char const * const typeName );
 
-PyObject * createPyListOfStrings( std::string const * const strptr, std::ptrdiff_t const size );
+/**
+ * @brief Return a Python string copy of @c value.
+ * @param value The string to copy into Python.
+ * @return A Python string copy of @c value.
+ */
+PyObject * create( std::string const & value );
 
 /**
- * @brief create and return a Python list of strings from a std::vector of std::strings.
- *   the Python strings will be copies.
- * @param vec the vector to convert.
- * @param modify has no effect
+ * @brief Create and return a Python list of strings from an array of std::strings.
+ *   The Python strings will be copies.
+ * @param strptr A pointer to the strings to convert, must be of length @c size.
+ * @param size The number of strings in @c strptr.
+ * @return A Python list of strings, or @c nullptr if there was an error.
  */
-inline PyObject * create( std::vector< std::string > const & vec, bool const modify )
-{
-  LVARRAY_UNUSED_VARIABLE( modify );
-  return createPyListOfStrings( vec.data(), integerConversion< std::ptrdiff_t >( vec.size() ) );
-}
+PyObject * createPyListOfStrings( std::string const * const strptr, long long const size );
+
+/**
+ * @brief Create and return a Python list of strings from a std::vector of std::strings.
+ *   The Python strings will be copies.
+ * @param vec the vector to convert.
+ * @return A Python list of strings, or @c nullptr if there was an error.
+ */
+inline PyObject * create( std::vector< std::string > const & vec )
+{ return createPyListOfStrings( vec.data(), integerConversion< long long >( vec.size() ) ); }
 
 /*
  * Base class for all C++ exceptions related to Python.

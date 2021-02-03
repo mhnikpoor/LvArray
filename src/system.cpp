@@ -425,7 +425,10 @@ std::string calculateSize( size_t const bytes )
   return result;
 }
 
-// When using a std::function directly there was an exit time error, by not deallocating it we get around it.
+/**
+ * @brief A static pointer to the error handler.
+ * @note When using a std::function directly there was an exit time error, by not deallocating it we get around it.
+ */
 std::function< void() > * s_errorHandler = nullptr;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

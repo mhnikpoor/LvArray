@@ -32,16 +32,10 @@ namespace python
 namespace internal
 {
 
-bool err( void )
-{
-  if( PyErr_Occurred() != nullptr )
-  {
-    return true;
-  }
-  return false;
-}
+bool err()
+{ return PyErr_Occurred() != nullptr; }
 
-void callPyFunc( PyObject * func, PyObject * * args, std::ptrdiff_t argc )
+void callPyFunc( PyObject * func, PyObjectRef<> * args, long long const argc )
 {
   Py_ssize_t const argc_ssize = static_cast< Py_ssize_t >( argc );
   PyObjectRef<> tup{ PyTuple_New( argc_ssize ) };
@@ -49,10 +43,13 @@ void callPyFunc( PyObject * func, PyObject * * args, std::ptrdiff_t argc )
   {
     return;
   }
+
   for( Py_ssize_t i = 0; i < argc_ssize; ++i )
   {
-    PyTuple_SET_ITEM( tup.get(), i, args[ i ] );
+    // The references get stolen by PyObject_CallObject.
+    PyTuple_SET_ITEM( tup.get(), i, args[ i ].release() );
   }
+
   Py_XDECREF( PyObject_CallObject( func, tup.get() ) );
 }
 

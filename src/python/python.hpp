@@ -34,13 +34,27 @@
 
 namespace LvArray
 {
+
+/**
+ * @brief Contains all the Python code.
+ */
 namespace python
 {
 
+/**
+ *
+ */
 bool addPyLvArrayModule( PyObject * module );
 
-IS_VALID_EXPRESSION( CanCreate, T, create( std::declval< T & >() ) );
+/**
+ * @brief Expands to a static constexpr template bool @code CanCreate< T > @endcode which is true iff
+ *   @c T is a type which LvArray can export to Python.
+ */
+IS_VALID_EXPRESSION( CanCreate, T, LvArray::python::create( std::declval< T & >() ) );
 
+/**
+ *
+ */
 PyObjectRef<> getModule();
 
 } // namespace python

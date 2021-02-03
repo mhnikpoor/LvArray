@@ -35,6 +35,8 @@
 #include <numpy/arrayobject.h>
 #pragma GCC diagnostic pop
 
+/// @cond DO_NOT_DOCUMENT
+
 namespace LvArray
 {
 namespace python
@@ -142,7 +144,7 @@ static PyObject * PyArray_resize( PyArray * const self, PyObject * const args )
 
   PYTHON_ERROR_IF( newSize < 0, PyExc_ValueError, "Size must be positive.", nullptr );
 
-  self->array->resize( integerConversion< std::ptrdiff_t >( newSize ) );
+  self->array->resize( integerConversion< long long >( newSize ) );
 
   Py_RETURN_NONE;
 }
@@ -163,8 +165,8 @@ static PyObject * PyArray_resizeAll( PyArray * const self, PyObject * const args
     return nullptr;
   }
 
-  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > ret =
-    parseNumPyArray( obj, typeid( std::ptrdiff_t ) );
+  std::tuple< PyObjectRef< PyObject >, void const *, long long > ret =
+    parseNumPyArray( obj, typeid( long long ) );
 
   if( std::get< 0 >( ret ) == nullptr )
   {
@@ -175,7 +177,7 @@ static PyObject * PyArray_resizeAll( PyArray * const self, PyObject * const args
   PYTHON_ERROR_IF( std::get< 2 >( ret ) != self->array->ndim(), PyExc_RuntimeError,
                    "Invalid number of dimensions, should be " << self->array->ndim(), nullptr );
 
-  self->array->resize( reinterpret_cast< std::ptrdiff_t const * >( std::get< 1 >( ret ) ) );
+  self->array->resize( reinterpret_cast< long long const * >( std::get< 1 >( ret ) ) );
 
   Py_RETURN_NONE;
 }
@@ -288,14 +290,14 @@ PyObject * create( std::unique_ptr< PyArrayWrapperBase > && array )
     return nullptr;
   }
 
-  retArray->array = array.release();
-
-  PyObject * typeObject = getNumPyTypeObject( retArray->array->dataType() );
+  PyObject * typeObject = getNumPyTypeObject( array->valueType() );
   if( typeObject == nullptr )
   {
     return nullptr;
   }
+
   retArray->numpyDtype = typeObject;
+  retArray->array = array.release();
 
   return ret;
 }
@@ -304,3 +306,5 @@ PyObject * create( std::unique_ptr< PyArrayWrapperBase > && array )
 
 } // namespace python
 } // namespace LvArray
+
+/// @endcond DO_NOT_DOCUMENT

@@ -77,12 +77,15 @@ bool addTypeToModule( PyObject * const module,
   return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+PyObject * create( std::string const & value )
+{ return PyUnicode_FromString( value.c_str() ); }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-PyObject * createPyListOfStrings( std::string const * const strptr, std::ptrdiff_t const size )
+PyObject * createPyListOfStrings( std::string const * const strptr, long long const size )
 {
   PyObject * pylist = PyList_New( size );
-  for( std::ptrdiff_t i = 0; i < size; ++i )
+  for( long long i = 0; i < size; ++i )
   {
     PyObject * pystr = PyUnicode_FromString( strptr[ i ].c_str() );
     PyList_SET_ITEM( pylist, integerConversion< Py_ssize_t >( i ), pystr );

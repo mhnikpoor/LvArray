@@ -35,6 +35,8 @@
 #include <numpy/arrayobject.h>
 #pragma GCC diagnostic pop
 
+/// @cond DO_NOT_DOCUMENT
+
 namespace LvArray
 {
 namespace python
@@ -164,7 +166,7 @@ static PyObject * PyArrayOfArrays_insertIntoArray( PyArrayOfArrays * self, PyObj
     PyErr_SetString( PyExc_IndexError, "index out of bounds" );
     return nullptr;
   }
-  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > ret =
+  std::tuple< PyObjectRef< PyObject >, void const *, long long > ret =
     parseNumPyArray( arr, self->arrayOfArrays->valueType() );
   if( std::get< 0 >( ret ) == nullptr )
   {
@@ -194,7 +196,7 @@ static PyObject * PyArrayOfArrays_insert( PyArrayOfArrays * self, PyObject * arg
     PyErr_SetString( PyExc_IndexError, "Index out of bounds" );
     return nullptr;
   }
-  std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t > ret =
+  std::tuple< PyObjectRef< PyObject >, void const *, long long > ret =
     parseNumPyArray( arr, self->arrayOfArrays->valueType() );
   if( std::get< 0 >( ret ) == nullptr )
   {
@@ -308,9 +310,8 @@ namespace internal
 {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-PyObject * create( std::unique_ptr< PyArrayOfArraysWrapperBase > && array )
+PyObject * create( std::unique_ptr< PyArrayOfArraysWrapperBase > && arrayOfArrays )
 {
-  // Create a new Group and set the dataRepository::Group it points to.
   PyObject * const ret = PyObject_CallFunction( reinterpret_cast< PyObject * >( getPyArrayOfArraysType() ), "" );
   PyArrayOfArrays * const retArrayOfArrays = reinterpret_cast< PyArrayOfArrays * >( ret );
   if( retArrayOfArrays == nullptr )
@@ -318,14 +319,14 @@ PyObject * create( std::unique_ptr< PyArrayOfArraysWrapperBase > && array )
     return nullptr;
   }
 
-  retArrayOfArrays->arrayOfArrays = array.release();
-
-  PyObject * typeObject = getNumPyTypeObject( retArrayOfArrays->arrayOfArrays->valueType() );
+  PyObject * typeObject = getNumPyTypeObject( arrayOfArrays->valueType() );
   if( typeObject == nullptr )
   {
     return nullptr;
   }
+
   retArrayOfArrays->numpyDtype = typeObject;
+  retArrayOfArrays->arrayOfArrays = arrayOfArrays.release();
 
   return ret;
 }
@@ -334,3 +335,5 @@ PyObject * create( std::unique_ptr< PyArrayOfArraysWrapperBase > && array )
 
 } // namespace python
 } // namespace LvArray
+
+/// @endcond DO_NOT_DOCUMENT

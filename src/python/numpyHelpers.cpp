@@ -42,17 +42,80 @@ namespace python
 namespace internal
 {
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::nullptr_t exportError( std::string const & typeName )
-{ PYTHON_ERROR_IF( true, PyExc_RuntimeError, "Cannot export " << typeName << " to numpy.", nullptr ); }
+/**
+ * @brief Return the NumPy type and bytesize of the type @c typeIndex.
+ * @param typeIndex The type to convert.
+ * @return A pair containing the NumPy type and the bytesize of @c typeIndex.
+ *   If the conversion fails the returned NumPy type is @c NPY_NOTYPE.
+ */
+static std::pair< int, std::size_t > getNumPyType( std::type_index const typeIndex )
+{
+  if( typeIndex == std::type_index( typeid( char ) ) )
+  {
+    return { std::is_signed< char >::value ? NPY_BYTE : NPY_UBYTE, sizeof( char ) };
+  }
+  if( typeIndex == std::type_index( typeid( signed char ) ) )
+  {
+    return { NPY_BYTE, sizeof( signed char ) };
+  }
+  if( typeIndex == std::type_index( typeid( unsigned char ) ) )
+  {
+    return { NPY_UBYTE, sizeof( unsigned char ) };
+  }
+  if( typeIndex == std::type_index( typeid( short ) ) )
+  {
+    return { NPY_SHORT, sizeof( short ) };
+  }
+  if( typeIndex == std::type_index( typeid( unsigned short ) ) )
+  {
+    return { NPY_USHORT, sizeof( unsigned short ) };
+  }
+  if( typeIndex == std::type_index( typeid( int ) ) )
+  {
+    return { NPY_INT, sizeof( int ) };
+  }
+  if( typeIndex == std::type_index( typeid( unsigned int ) ) )
+  {
+    return { NPY_UINT, sizeof( unsigned int ) };
+  }
+  if( typeIndex == std::type_index( typeid( long ) ) )
+  {
+    return { NPY_LONG, sizeof( long ) };
+  }
+  if( typeIndex == std::type_index( typeid( unsigned long ) ) )
+  {
+    return { NPY_ULONG, sizeof( unsigned long ) };
+  }
+  if( typeIndex == std::type_index( typeid( long long ) ) )
+  {
+    return { NPY_LONGLONG, sizeof( long long ) };
+  }
+  if( typeIndex == std::type_index( typeid( unsigned long long ) ) )
+  {
+    return { NPY_ULONGLONG, sizeof( unsigned long long ) };
+  }
+  if( typeIndex == std::type_index( typeid( float ) ) )
+  {
+    return { NPY_FLOAT, sizeof( float ) };
+  }
+  if( typeIndex == std::type_index( typeid( double ) ) )
+  {
+    return { NPY_DOUBLE, sizeof( double ) };
+  }
+  if( typeIndex == std::type_index( typeid( long double ) ) )
+  {
+    return { NPY_LONGDOUBLE, sizeof( long double ) };
+  }
+  return { NPY_NOTYPE, std::numeric_limits< std::size_t >::max() };
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 PyObject * createNumpyArrayImpl( void * const data,
                                  std::type_index const type,
                                  bool const dataIsConst,
                                  int const ndim,
-                                 std::ptrdiff_t const * const dims,
-                                 std::ptrdiff_t const * const strides )
+                                 long long const * const dims,
+                                 long long const * const strides )
 {
   if( !import_array_wrapper() )
   {
@@ -89,25 +152,29 @@ PyObject * createCupyArrayImpl( void * const data,
                                 std::type_index const type,
                                 bool const dataIsConst,
                                 int const ndim,
-                                std::ptrdiff_t const * const dims,
-                                std::ptrdiff_t const * const strides )
+                                long long const * const dims,
+                                long long const * const strides )
 {
   LVARRAY_UNUSED_VARIABLE( dataIsConst );
   if( !import_array_wrapper() )
   {
     return nullptr;
   }
+
   std::pair< int, std::size_t > const typeInfo = getNumPyType( type );
   PYTHON_ERROR_IF( typeInfo.first == NPY_NOTYPE, PyExc_TypeError,
                    "No NumPy type for " << system::demangle( type.name() ), nullptr );
+
   PyObjectRef<> typeObject{ PyArray_TypeObjectFromType( typeInfo.first ) };
   PYTHON_ERROR_IF( typeObject == nullptr, PyExc_TypeError, "Couldn't get type object", nullptr );
+
   PyObjectRef<> strideTuple{ PyTuple_New( integerConversion< Py_ssize_t >( ndim ) ) };
   PyObjectRef<> dimTuple{ PyTuple_New( integerConversion< Py_ssize_t >( ndim ) ) };
   if( strideTuple == nullptr || dimTuple == nullptr )
   {
     return nullptr;
   }
+
   Py_ssize_t totalSize = static_cast< Py_ssize_t >( typeInfo.second );
   for( Py_ssize_t i = 0; i < ndim; ++i )
   {
@@ -118,19 +185,23 @@ PyObject * createCupyArrayImpl( void * const data,
     {
       return nullptr;
     }
+
     PyTuple_SET_ITEM( static_cast< PyObject * >( strideTuple ), i, strideEntry );
     PyTuple_SET_ITEM( static_cast< PyObject * >( dimTuple ), i, dimEntry );
   }
+
   PyObjectRef<> cupyHelper = PyImport_ImportModule( "cupy_helper" );
   if( cupyHelper == nullptr )
   {
     return nullptr;
   }
+
   PyObjectRef<> constructor = PyObject_GetAttrString( cupyHelper, "create_cupy_array" );
   if( constructor == nullptr )
   {
     return nullptr;
   }
+
   return PyObject_CallFunction( constructor,
                                 "nnOOO",
                                 (Py_ssize_t) ( data ),
@@ -142,6 +213,7 @@ PyObject * createCupyArrayImpl( void * const data,
 
 } // namespace internal
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool import_array_wrapper()
 {
   if( PyArray_API == nullptr )
@@ -153,14 +225,10 @@ bool import_array_wrapper()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-PyObject * create( std::string const & value )
-{ return PyUnicode_FromString( value.c_str() ); }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t >
+std::tuple< PyObjectRef< PyObject >, void const *, long long >
 parseNumPyArray( PyObject * const obj, std::type_index const expectedType )
 {
-  using ReturnType = std::tuple< PyObjectRef< PyObject >, void const *, std::ptrdiff_t >;
+  using ReturnType = std::tuple< PyObjectRef< PyObject >, void const *, long long >;
   ReturnType const ErrorReturn{ nullptr, nullptr, 0 };
 
   if( !import_array_wrapper() )
@@ -181,12 +249,12 @@ parseNumPyArray( PyObject * const obj, std::type_index const expectedType )
                    "Data must be contiguous and well behaved.", ErrorReturn );
 
   int const srcNumPyType = PyArray_TYPE( array );
-  int const expectedNumPyType = getNumPyType( expectedType ).first;
+  int const expectedNumPyType = internal::getNumPyType( expectedType ).first;
 
   if( srcNumPyType == expectedNumPyType )
   {
     void const * vals = PyArray_DATA( array );
-    std::ptrdiff_t const nVals = integerConversion< std::ptrdiff_t >( PyArray_SIZE( array ) );
+    long long const nVals = integerConversion< long long >( PyArray_SIZE( array ) );
     return ReturnType{ reinterpret_cast< PyObject * >( array.release() ), vals, nVals };
   }
 
@@ -196,7 +264,7 @@ parseNumPyArray( PyObject * const obj, std::type_index const expectedType )
 
   PyArrayObject * convertedArray = reinterpret_cast< PyArrayObject * >( PyArray_Cast( array, expectedNumPyType ) );
   void const * vals = PyArray_DATA( convertedArray );
-  std::ptrdiff_t const nVals = integerConversion< std::ptrdiff_t >( PyArray_SIZE( convertedArray ) );
+  long long const nVals = integerConversion< long long >( PyArray_SIZE( convertedArray ) );
   return ReturnType{ reinterpret_cast< PyObject * >( convertedArray ), vals, nVals };
 }
 
@@ -319,76 +387,17 @@ std::string getNumPyTypeName( int const numpyType )
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::pair< int, std::size_t > getNumPyType( std::type_index const typeIndex )
-{
-  if( typeIndex == std::type_index( typeid( char ) ) )
-  {
-    return { std::is_signed< char >::value ? NPY_BYTE : NPY_UBYTE, sizeof( char ) };
-  }
-  if( typeIndex == std::type_index( typeid( signed char ) ) )
-  {
-    return { NPY_BYTE, sizeof( signed char ) };
-  }
-  if( typeIndex == std::type_index( typeid( unsigned char ) ) )
-  {
-    return { NPY_UBYTE, sizeof( unsigned char ) };
-  }
-  if( typeIndex == std::type_index( typeid( short ) ) )
-  {
-    return { NPY_SHORT, sizeof( short ) };
-  }
-  if( typeIndex == std::type_index( typeid( unsigned short ) ) )
-  {
-    return { NPY_USHORT, sizeof( unsigned short ) };
-  }
-  if( typeIndex == std::type_index( typeid( int ) ) )
-  {
-    return { NPY_INT, sizeof( int ) };
-  }
-  if( typeIndex == std::type_index( typeid( unsigned int ) ) )
-  {
-    return { NPY_UINT, sizeof( unsigned int ) };
-  }
-  if( typeIndex == std::type_index( typeid( long ) ) )
-  {
-    return { NPY_LONG, sizeof( long ) };
-  }
-  if( typeIndex == std::type_index( typeid( unsigned long ) ) )
-  {
-    return { NPY_ULONG, sizeof( unsigned long ) };
-  }
-  if( typeIndex == std::type_index( typeid( long long ) ) )
-  {
-    return { NPY_LONGLONG, sizeof( long long ) };
-  }
-  if( typeIndex == std::type_index( typeid( unsigned long long ) ) )
-  {
-    return { NPY_ULONGLONG, sizeof( unsigned long long ) };
-  }
-  if( typeIndex == std::type_index( typeid( float ) ) )
-  {
-    return { NPY_FLOAT, sizeof( float ) };
-  }
-  if( typeIndex == std::type_index( typeid( double ) ) )
-  {
-    return { NPY_DOUBLE, sizeof( double ) };
-  }
-  if( typeIndex == std::type_index( typeid( long double ) ) )
-  {
-    return { NPY_LONGDOUBLE, sizeof( long double ) };
-  }
-  return { NPY_NOTYPE, std::numeric_limits< std::size_t >::max() };
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 PyObject * getNumPyTypeObject( std::type_index const typeIndex )
 {
   PYTHON_ERROR_IF( !import_array_wrapper(), PyExc_RuntimeError, "Couldn't import array wrapper", nullptr );
-  std::pair< int, std::size_t > const typeInfo = getNumPyType( typeIndex );
+
+  std::pair< int, std::size_t > const typeInfo = internal::getNumPyType( typeIndex );
   PYTHON_ERROR_IF( typeInfo.first == NPY_NOTYPE, PyExc_TypeError,
                    "No NumPy type for " << system::demangle( typeIndex.name() ), nullptr );
+
   PyObjectRef<> typeObject { PyArray_TypeObjectFromType( typeInfo.first ) };
   PYTHON_ERROR_IF( typeObject == nullptr, PyExc_TypeError, "Couldn't get type object", nullptr );
+
   return typeObject.release();
 }
 
