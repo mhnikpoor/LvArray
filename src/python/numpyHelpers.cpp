@@ -401,6 +401,5 @@ PyObject * getNumPyTypeObject( std::type_index const typeIndex )
   return typeObject.release();
 }
 
-
 } // namespace python
 } // namespace LvArray
